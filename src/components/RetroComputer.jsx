@@ -23,12 +23,14 @@ function Plastic({size,position,rotation=[0,0,0],radius=.10,color=cream,children
 function Keyboard(){
   const keys=useRef();
   const dummy=useMemo(()=>new THREE.Object3D(),[]);
-  // Six rows of fifteen keys, plus a contained four-column numeric keypad.
-  const count=6*15+5*4;
+  // Bottom-row slots 5–9 belong to the spacebar: never spawn keycaps underneath it.
+  // Six rows of fifteen slots, five reserved for the spacebar, plus the numeric keypad.
+  const count=6*15-5+5*4;
   useLayoutEffect(()=>{
     let i=0;
     for(let row=0;row<6;row++){
       for(let col=0;col<15;col++){
+        if(row===5 && col>=5 && col<=9)continue;
         dummy.position.set(-1.58+col*.194,.204,-.44+row*.176);
         dummy.scale.set(.94,1,.91);
         dummy.updateMatrix();
@@ -220,7 +222,8 @@ function SceneContents(props){
     <group rotation={[0,-.055,0]}>
       <Monitor {...props}/>
       <Keyboard/>
-      <MouseAndShadow/>\n      <group position={[-2.92,-1.54,0]}>
+      <MouseAndShadow/>
+      <group position={[-2.92,-1.54,0]}>
         <Plastic size={[.68,.082,1.05]} position={[0,0,0]} radius={.02} color="#b8a98c"/>
         <Plastic size={[.51,.006,.71]} position={[0,.047,-.08]} radius={.002} color="#8ea6a0"/>
       </group>
@@ -231,6 +234,7 @@ function SceneContents(props){
 function CameraMotion({zoom=0,reducedMotion=false}){
   const {camera,pointer,size}=useThree();
   const focus=useMemo(()=>new THREE.Vector3(),[]);
+  const smoothFocus=useMemo(()=>new THREE.Vector3(0,.24,0),[]);
   const position=useMemo(()=>new THREE.Vector3(),[]);
   const aimQuat=useMemo(()=>new THREE.Quaternion(),[]);
   const helper=useMemo(()=>new THREE.PerspectiveCamera(),[]);
@@ -241,24 +245,27 @@ function CameraMotion({zoom=0,reducedMotion=false}){
     // Do not recalculate the perspective projection on every frame.
     if(currentFov.current!==fov){camera.fov=fov;camera.updateProjectionMatrix();currentFov.current=fov;}
     const delta=Math.min(dt,.07);
-    const ease=1-Math.exp(-delta*7.8);
+    // Frame-rate-independent damping, deliberately slow and cinematic.
+    const positionEase=1-Math.exp(-delta*3.2);
+    const targetEase=1-Math.exp(-delta*2.6);
+    const rotationEase=1-Math.exp(-delta*3.0);
     const z=portrait?11.8-zoom*4.0:9.45-zoom*3.15;
     position.set(0,1.28,z);
-    camera.position.lerp(position,ease);
+    camera.position.lerp(position,positionEase);
 
-    // The viewpoint is fixed at the central pivot. The cursor steers a
-    // limited outward-looking cone instead of forcing the camera to
-    // re-center its gaze on the CRT after translation.
+    // Keep the POV centered and only tilt outwards by a few degrees.
+    // Smooth the pointer target first, then ease the camera's actual rotation.
     const time=reducedMotion?0:clock.elapsedTime;
-    const yaw=reducedMotion?0:pointer.x*.105;
-    const pitch=reducedMotion?0:pointer.y*.070;
-    const wanderX=reducedMotion?0:Math.sin(time*.23)*.006;
-    const wanderY=reducedMotion?0:Math.cos(time*.19)*.004;
+    const yaw=reducedMotion?0:pointer.x*.038;
+    const pitch=reducedMotion?0:pointer.y*.023;
+    const wanderX=reducedMotion?0:Math.sin(time*.18)*.002;
+    const wanderY=reducedMotion?0:Math.cos(time*.16)*.0015;
     focus.set((yaw+wanderX)*z,.24+(pitch+wanderY)*z,0);
+    smoothFocus.lerp(focus,targetEase);
     helper.position.copy(camera.position);
-    helper.lookAt(focus);
+    helper.lookAt(smoothFocus);
     aimQuat.copy(helper.quaternion);
-    camera.quaternion.slerp(aimQuat,ease);
+    camera.quaternion.slerp(aimQuat,rotationEase);
   });
   return null;
 }
