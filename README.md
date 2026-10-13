@@ -162,3 +162,12 @@ shifted hitboxes below visibly rendered controls near the bottom of the screen
 mapping, including the subtly rolling interference and the on/off effects
 state, for hover and pointer clicks. This keeps the visible and clickable
 areas coincident across pages without enlarging invisible hitboxes.
+
+
+### Mouse cable routing
+
+The retro mouse cord follows a smooth Catmull–Rom path alongside the right
+edge of the computer and turns behind its rear panel. The curve updates as
+the mouse moves, and its attachment stays aligned to the inward-facing
+socket. An automated geometry regression test samples 81 pointer positions
+and verifies that the cable stays outside the base cabinet with clearance.
