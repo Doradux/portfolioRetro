@@ -396,7 +396,7 @@ function CameraMotion({zoom=0,reducedMotion=false,isMobile=false}){
 
   useFrame(({clock},delta)=>{
     const portrait=size.width/size.height<.82;
-    const fov=isMobile?(portrait?60:52):37;
+    const fov=isMobile?(portrait?66:59):37;
     if(currentFov.current!==fov){
       camera.fov=fov;
       camera.updateProjectionMatrix();
@@ -406,8 +406,10 @@ function CameraMotion({zoom=0,reducedMotion=false,isMobile=false}){
     if(isMobile){
       // Reframe the real desk phone from above; this camera never follows
       // cursor movements, so tapping the D-pad cannot shake the view.
-      camera.position.set(-3.24,1.30,2.00);
-      camera.lookAt(-3.24,-1.54,.60);
+      // Closer to the handset and more perpendicular to its desk plane:
+      // less perspective tilt, without letting the device fill the viewport.
+      camera.position.set(-3.24,1.12,1.45);
+      camera.lookAt(-3.24,-1.54,.43);
       return;
     }
     const z=9.45-zoom*3.15;

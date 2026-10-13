@@ -15,26 +15,54 @@ function Shell({size,position,radius=.04,color,children,...events}){
   </mesh>;
 }
 const controls=[
-  {id:'up',label:'▲',x:0,z:.48},
-  {id:'down',label:'▼',x:0,z:.98},
-  {id:'left',label:'◀',x:-.29,z:.73},
-  {id:'right',label:'▶',x:.29,z:.73},
-  {id:'ok',label:'OK',x:0,z:.73},
-  {id:'back',label:'↶',x:-.48,z:1.22},
-  {id:'menu',label:'≡',x:.48,z:1.22}
+  {id:'up',x:0,z:.48},
+  {id:'down',x:0,z:.98},
+  {id:'left',x:-.29,z:.73},
+  {id:'right',x:.29,z:.73},
+  {id:'ok',x:0,z:.73},
+  {id:'back',x:-.48,z:1.22},
+  {id:'menu',x:.48,z:1.22}
 ];
+// Render hardware symbols with explicit vector paths, never with Unicode
+// glyphs that iOS/Android can substitute with colored emoji.
+function drawKeySymbol(ctx,id){
+  ctx.save();
+  ctx.translate(64,64);
+  ctx.fillStyle=id==='ok'?'#edf8d9':'#324b3b';
+  ctx.strokeStyle='#324b3b';
+  ctx.lineJoin='round';ctx.lineCap='round';
+  if(['up','down','left','right'].includes(id)){
+    const turns={up:0,right:Math.PI/2,down:Math.PI,left:-Math.PI/2};
+    ctx.rotate(turns[id]);
+    ctx.beginPath();ctx.moveTo(0,-31);ctx.lineTo(29,20);ctx.lineTo(-29,20);
+    ctx.closePath();ctx.fill();
+  }else if(id==='back'){
+    ctx.lineWidth=9;
+    ctx.beginPath();ctx.moveTo(-28,7);ctx.bezierCurveTo(-20,-28,23,-28,29,5);
+    ctx.stroke();
+    ctx.beginPath();ctx.moveTo(-35,-5);ctx.lineTo(-17,-19);ctx.lineTo(-14,8);
+    ctx.closePath();ctx.fill();
+  }else if(id==='menu'){
+    ctx.lineWidth=10;
+    for(const y of [-23,0,23]){
+      ctx.beginPath();ctx.moveTo(-31,y);ctx.lineTo(31,y);ctx.stroke();
+    }
+  }else{
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.font='700 47px Arial,sans-serif';
+    ctx.fillText('OK',0,3);
+  }
+  ctx.restore();
+}
 const keyMap={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',
   Enter:'ok',' ':'ok',Escape:'back',Backspace:'back',m:'menu',M:'menu'};
 function PhoneKey({item,active,onActivate,onRelease}){
   const labelCanvas=useMemo(()=>{
     const c=document.createElement('canvas');c.width=128;c.height=128;
     const ctx=c.getContext('2d');ctx.clearRect(0,0,128,128);
-    ctx.fillStyle=item.id==='ok'?'#edf8d9':'#324b3b';
-    ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.font='bold '+(item.id==='ok'?52:66)+'px Arial,sans-serif';
-    ctx.fillText(item.label,64,70);
+    drawKeySymbol(ctx,item.id);
     return c;
-  },[item.id,item.label]);
+  },[item.id]);
   const texture=useMemo(()=>new THREE.CanvasTexture(labelCanvas),[labelCanvas]);
   useEffect(()=>()=>texture.dispose(),[texture]);
   const color=item.id==='ok'?'#3f775e':item.id==='menu'?'#b4b68e':item.id==='back'?'#d7bc93':'#e6e1cd';

@@ -89,6 +89,15 @@ for(const key of ['up','down','left','right','ok','back','menu']){
   assert(model.includes("id:'"+key+"'"),key+' missing');
 }
 assert(model.includes('SCREEN_CENTER_Z')||model.includes('LCD_Z'));
-assert(retro.includes('camera.lookAt(-3.24,-1.54,.60);'));
+assert(retro.includes('camera.lookAt(-3.24,-1.54,.43);'));
 assert(app.includes('isMobile={isMobile}'));
 console.log('PASS: 3D mobile controls, LCD alignment, menu focus, all 35 projects and back navigation');
+
+const unicodeArrowGlyphs=['▲','▼','◀','▶','↶','≡'];
+for (const character of unicodeArrowGlyphs) {
+  assert(!model.includes(character), 'Phone key icons must not depend on emoji-prone Unicode: '+character);
+}
+assert(model.includes('function drawKeySymbol(ctx,id)'));
+assert(model.includes('ctx.rotate(turns[id])'));
+assert(retro.includes('(portrait?66:59)'));
+console.log('PASS: emoji-free vector arrow icons and phone camera padding');

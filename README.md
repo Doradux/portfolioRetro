@@ -136,3 +136,10 @@ Menu is pressed, and project lists scroll in groups of four. Touch interactions
 also have tactile key sound feedback. Desktop view keeps its original interactive
 CRT experience. On mobile, hardware keyboard Arrow keys, Enter, Escape,
 Backspace and M can also operate the phone.
+
+
+The phone camera is positioned closer and more directly above the handset,
+with portrait/landscape FOV padding that keeps the entire body visible.
+All seven hardware symbols are drawn using Canvas vector paths (solid
+triangles, curved back arrow, horizontal menu lines) rather than emoji-prone
+Unicode arrow glyphs; the controls look consistent on iOS and Android.
