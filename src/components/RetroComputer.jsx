@@ -10,7 +10,7 @@ import { screenRegionAtUv } from '../lib/screenHit.js';
 import { KEY_LAYOUT } from '../lib/keyboardLayout.js';
 import { preloadSounds, playKeyboard, playMouseDown, playMouseUp } from '../lib/retroAudio.js';
 import { createMouseButtonTracker } from '../lib/mouseButtonTracker.js';
-import {makeMouseCableCurve,updateMouseCableCurve} from '../lib/mouseCable.js';
+import {makeMouseCableCurve,makeMouseCableDynamics,updateMouseCableCurve} from '../lib/mouseCable.js';
 
 const vertexShader = "varying vec2 vUv; void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}";
 const fragmentShader = "\nuniform sampler2D uMap;\nuniform float uTime;\nuniform float uEffects;\nvarying vec2 vUv;\nfloat rnd(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}\nvoid main(){\n vec2 c=vUv*2.0-1.0;\n vec2 uv=vUv+c*dot(c,c)*.029*uEffects;\n float roll=fract(uTime*.061);\n float seamDist=abs(fract(uv.y-roll+.5)-.5);\n float band=exp(-pow(seamDist*24.,2.));\n uv.x+=(.0014*sin(uv.y*21.5-uTime*1.37)+.0008*sin(uv.y*59.+uTime*.65)+.0030*band)*uEffects;\n float rgb=.00145*uEffects;\n vec3 color=vec3(texture2D(uMap,uv+vec2(rgb,0.)).r,texture2D(uMap,uv).g,texture2D(uMap,uv-vec2(rgb,0.)).b);\n float scan=1.-.065*(.5+.5*cos(uv.y*900.*3.14159));\n color*=mix(1.,scan*(.97+.03*sin(uv.x*1200.*3.14159)),uEffects);\n color+=(rnd(floor(uv*vec2(1200.,900.))+floor(uTime*24.))-.5)*.013*uEffects;\n color+=vec3(.018,.039,.022)*band*uEffects;\n color*=1.-.26*pow(clamp(length(c)/1.42,0.,1.),1.7);\n float refl=pow(max(0.,1.-length((vUv-vec2(.12,.94))*vec2(.75,1.3))),7.);\n color+=vec3(.035,.055,.055)*refl;\n color*=step(.003,uv.x)*step(.003,uv.y)*step(uv.x,.997)*step(uv.y,.997);\n gl_FragColor=vec4(color,1.0);\n #include <tonemapping_fragment>\n #include <colorspace_fragment>\n}\n";
@@ -170,6 +170,7 @@ function MouseAndShadow(){
   const tangent=useMemo(()=>new THREE.Vector3(),[]);
   const axis=useMemo(()=>new THREE.Vector3(0,1,0),[]);
   const curve=useMemo(()=>makeMouseCableCurve(),[]);
+  const cableDynamics=useMemo(()=>makeMouseCableDynamics(),[]);
   const texture=useMemo(()=>{
     const canvas=document.createElement('canvas');canvas.width=128;canvas.height=128;
     const ctx=canvas.getContext('2d');
@@ -220,9 +221,11 @@ function MouseAndShadow(){
     rightButton.current.position.y=THREE.MathUtils.lerp(
       rightButton.current.position.y,.121-(pressed.has(2)?.032:0),ease);
 
-    // Route around the computer's right side and behind the cabinet,
-    // preserving clearance across every permitted mouse position.
-    updateMouseCableCurve(curve,mouse.current.position.x,mouse.current.position.z,MOUSE_INWARD_YAW);
+    // Give the cable's first two bends independent spring inertia so it
+    // softly trails the hand instead of behaving like a rigid mouse antenna.
+    // The outer stretch still clears the side of the PC.
+    updateMouseCableCurve(curve,mouse.current.position.x,mouse.current.position.z,
+      MOUSE_INWARD_YAW,cableDynamics,dt);
     curve.getPoint(0,previous);
     for(let i=0;i<CABLE_SEGMENTS;i++){
       curve.getPoint((i+1)/CABLE_SEGMENTS,next);

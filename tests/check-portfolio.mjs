@@ -106,6 +106,7 @@ const inwardYaw=Number(sceneSource.match(/const MOUSE_INWARD_YAW=([\d.]+);/)?.[1
 assert(inwardYaw>0 && inwardYaw<.5,'mouse must face inward, toward the monitor');
 assert(sceneSource.includes('rotation={[0,MOUSE_INWARD_YAW,0]}'));
 assert(sceneSource.includes('rotation={[-Math.PI/2,0,MOUSE_INWARD_YAW]}'));
-assert(sceneSource.includes('updateMouseCableCurve(curve,mouse.current.position.x,mouse.current.position.z,MOUSE_INWARD_YAW)'));
+assert(sceneSource.includes('MOUSE_INWARD_YAW,cableDynamics,dt'));
+assert(sceneSource.includes('makeMouseCableDynamics()'));
 assert(sceneSource.includes('const CABLE_SEGMENTS=40;'));
 console.log('PASS: mouse points inward; matching body, contact shadow and cord origin');

@@ -167,7 +167,10 @@ areas coincident across pages without enlarging invisible hitboxes.
 ### Mouse cable routing
 
 The retro mouse cord follows a smooth Catmull–Rom path alongside the right
-edge of the computer and turns behind its rear panel. The curve updates as
-the mouse moves, and its attachment stays aligned to the inward-facing
-socket. An automated geometry regression test samples 81 pointer positions
-and verifies that the cable stays outside the base cabinet with clearance.
+edge of the computer and turns behind its rear panel. The socket stays
+physically attached to the mouse, while the nearest two cable bends follow
+with separate, frame-rate-independent, damped spring motion. Rapid mouse
+movements therefore bend the cable and the loose loop settles naturally
+instead of moving like a rigid rod. The outer route is constrained to avoid
+the computer. Automated tests cover 81 stationary pointer positions and
+dynamic direction changes at 30, 60 and 120 FPS.
