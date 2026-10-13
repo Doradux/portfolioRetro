@@ -84,7 +84,10 @@ function Keyboard(){
     if(space.current)space.current.position.y=.193-spaceHeight.current;
   });
 
-  return <group position={[-.23,-1.49,2.38]} rotation={[-.10,-.02,0]}>
+  return <group position={[-.23,-1.49,2.38]} rotation={[.10,-.02,0]}>
+    {/* Front lip touches the desk; low-profile rear feet support the raised edge. */}
+    {[-1.67,1.77].map((x,i)=><Plastic key={'foot-'+i} size={[.30,.125,.22]}
+      position={[x,-.170,-.53]} radius={.035} color="#777568"/>)}
     <Plastic size={[4.17,.22,1.36]} position={[.13,0,.05]} radius={.11} color={lightCream}/>
     <Plastic size={[4.04,.05,1.18]} position={[.12,.122,.03]} radius={.04} color="#b4af98"/>
     <instancedMesh ref={keys} args={[undefined,undefined,KEY_LAYOUT.length]} castShadow receiveShadow>
@@ -137,6 +140,7 @@ function RoundedOutline({outerWidth,outerHeight,innerWidth,innerHeight,depth=.08
   </mesh>;
 }
 
+const DESK_SURFACE_Y=-1.665;
 const MOUSE_BOUNDARIES={minX:2.37,maxX:3.03,minZ:2.15,maxZ:2.89};
 
 const CABLE_SEGMENTS=28;
@@ -154,10 +158,10 @@ function MouseAndShadow(){
   const tangent=useMemo(()=>new THREE.Vector3(),[]);
   const axis=useMemo(()=>new THREE.Vector3(0,1,0),[]);
   const curve=useMemo(()=>new THREE.CubicBezierCurve3(
-    new THREE.Vector3(2.70,-1.42,2.05),
-    new THREE.Vector3(2.90,-1.36,1.50),
-    new THREE.Vector3(2.35,-1.49,1.15),
-    new THREE.Vector3(2.26,-1.51,.99)
+    new THREE.Vector3(2.70,-1.46,2.05),
+    new THREE.Vector3(2.89,-1.56,1.35),
+    new THREE.Vector3(2.18,-1.615,.25),
+    new THREE.Vector3(1.72,-1.595,-1.40)
   ),[]);
   const texture=useMemo(()=>{
     const canvas=document.createElement('canvas');canvas.width=128;canvas.height=128;
@@ -202,10 +206,10 @@ function MouseAndShadow(){
 
     // The cord is made of lightweight instanced cylinder links, recalculated
     // from the movable mouse front to the fixed connector behind it.
-    curve.v0.set(mouse.current.position.x,-1.415,mouse.current.position.z-.426);
-    curve.v1.set(mouse.current.position.x+.13,-1.395,mouse.current.position.z-.98);
-    curve.v2.set(2.45,-1.52,1.21);
-    curve.v3.set(2.26,-1.51,.99);
+    curve.v0.set(mouse.current.position.x,-1.487,mouse.current.position.z-.426);
+    curve.v1.set(mouse.current.position.x+.13,-1.56,mouse.current.position.z-1.08);
+    curve.v2.set(2.12,-1.615,.02);
+    curve.v3.set(1.72,-1.595,-1.40);
     curve.getPoint(0,previous);
     for(let i=0;i<CABLE_SEGMENTS;i++){
       curve.getPoint((i+1)/CABLE_SEGMENTS,next);
@@ -219,15 +223,15 @@ function MouseAndShadow(){
     cable.current.instanceMatrix.needsUpdate=true;
   });
   return <group>
-    <mesh ref={shade} position={[2.70,-1.657,2.50]} rotation={[-Math.PI/2,0,-.15]} renderOrder={1}>
+    <mesh ref={shade} position={[2.70,-1.660,2.50]} rotation={[-Math.PI/2,0,-.15]} renderOrder={1}>
       <planeGeometry args={[.95,1.27]}/>
-      <meshBasicMaterial map={texture} transparent depthWrite={false} opacity={.68} polygonOffset polygonOffsetFactor={-2}/>
+      <meshBasicMaterial map={texture} transparent depthWrite={false} opacity={.38} polygonOffset polygonOffsetFactor={-2}/>
     </mesh>
     <instancedMesh ref={cable} args={[undefined,undefined,CABLE_SEGMENTS]} castShadow>
       <cylinderGeometry args={[.013,.013,1,7]}/>
       <meshStandardMaterial color="#31332c" roughness={.95}/>
     </instancedMesh>
-    <group ref={mouse} position={[2.70,-1.49,2.50]} rotation={[0,-.15,0]}>
+    <group ref={mouse} position={[2.70,-1.5675,2.50]} rotation={[0,-.15,0]}>
       {/* Squarish 90s mouse shell with gently rounded rectangular corners. */}
       <Plastic size={[.60,.195,.86]} position={[0,0,0]} radius={.072} color="#ddd4b9"/>
       <Plastic size={[.565,.065,.52]} position={[0,.051,.116]} radius={.042} color="#c9bfa6"/>
@@ -248,8 +252,34 @@ function MouseAndShadow(){
     </group>
   </group>;
 }
+function VintagePhone(){
+  return <group position={[-2.92,-1.602,0]} rotation={[0,-.12,0]}>
+    {/* 1990s handheld phone laid flat with its underside on the desk. */}
+    <Plastic size={[.68,.126,1.18]} position={[0,0,0]} radius={.075} color="#aaa894"/>
+    <Plastic size={[.59,.028,1.05]} position={[0,.077,-.005]} radius={.045} color="#c3bdab"/>
+    <Plastic size={[.48,.015,.38]} position={[0,.097,-.198]} radius={.016} color="#475f59"/>
+    <Plastic size={[.42,.005,.30]} position={[0,.108,-.198]} radius={.008} color="#8daba0"/>
+    {/* LCD elements and status indicators. */}
+    {[-.17,.0,.17].map((x,i)=><mesh key={'lcd-'+i} position={[x,.112,-.205]}>
+      <boxGeometry args={[.072,.005,.015]}/>
+      <meshBasicMaterial color={i===0?'#364e43':'#526e55'}/>
+    </mesh>)}
+    <Plastic size={[.37,.018,.036]} position={[0,.100,-.478]} radius={.012} color="#666b5d"/>
+    <Plastic size={[.18,.015,.055]} position={[0,.104,.042]} radius={.015} color="#6a7666"/>
+    {Array.from({length:12},(_,i)=>{
+      const row=Math.floor(i/3),col=i%3;
+      return <Plastic key={'dial-'+i} size={[.115,.030,.085]}
+        position={[(col-1)*.166,.109,.18+row*.105]} radius={.02}
+        color={i===9?'#9b927d':'#e6e0cc'}/>;
+    })}
+    <mesh castShadow position={[.19,.08,-.51]} rotation={[Math.PI/2,0,0]}>
+      <cylinderGeometry args={[.021,.025,.26,10]}/>
+      <meshStandardMaterial color="#5a6055" roughness={.8}/>
+    </mesh>
+  </group>;
+}
 function ComputerBase(){
-  return <group position={[0,-1.38,-.22]}>
+  return <group position={[0,-1.45,-.22]}>
     <Plastic size={[4.40,.43,1.68]} position={[0,0,0]} radius={.09} color="#c3bba0"/>
     <Plastic size={[4.12,.265,.1]} position={[0,.012,.85]} radius={.024} color="#b4ae94"/>
     <Plastic size={[1.57,.047,.016]} position={[-.9,.057,.91]} radius={.012} color="#51564d"/>
@@ -338,12 +368,9 @@ function SceneContents(props){
       <Monitor {...props}/>
       <Keyboard/>
       <MouseAndShadow/>
-      <group position={[-2.92,-1.54,0]}>
-        <Plastic size={[.68,.082,1.05]} position={[0,0,0]} radius={.02} color="#b8a98c"/>
-        <Plastic size={[.51,.006,.71]} position={[0,.047,-.08]} radius={.002} color="#8ea6a0"/>
-      </group>
+      <VintagePhone/>
     </group>
-    <ContactShadows position={[0,-1.655,0]} opacity={.25} scale={9} blur={2.35} far={3} frames={1} resolution={256} color="#18110d"/>
+    <ContactShadows position={[0,-1.655,0]} opacity={.17} scale={8} blur={1.8} far={2.3} frames={1} resolution={256} color="#18110d"/>
   </>;
 }
 function CameraMotion({zoom=0,reducedMotion=false}){
@@ -364,7 +391,7 @@ function CameraMotion({zoom=0,reducedMotion=false}){
     const z=portrait?11.8-zoom*4:9.45-zoom*3.15;
     // Raise the eye and the focal point as we approach the CRT, keeping
     // the complete top frame visible even with the zoom at its maximum.
-    camera.position.set(0,1.28+zoom*.60,z);
+    camera.position.set(0,1.28+zoom*.37,z);
 
     // A single, frame-rate-independent smoothing pass avoids the previous
     // accumulated delay from target lerp + quaternion slerp.
@@ -373,7 +400,7 @@ function CameraMotion({zoom=0,reducedMotion=false}){
     const t=reducedMotion?0:clock.elapsedTime;
     const driftX=reducedMotion?0:Math.sin(t*.22)*.00065;
     const driftY=reducedMotion?0:Math.cos(t*.18)*.00048;
-    target.set((yaw+driftX)*z,.24+zoom*.91+(pitch+driftY)*z,0);
+    target.set((yaw+driftX)*z,.24+zoom*.62+(pitch+driftY)*z,0);
 
     const response=1-Math.exp(-Math.min(delta,.075)*11.5);
     smoothLook.lerp(target,response);

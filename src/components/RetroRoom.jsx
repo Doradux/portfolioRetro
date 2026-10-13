@@ -167,10 +167,14 @@ function RoomDecor(){
  return <>
     <group position={[3.72,2.64,-5.05]}>
       <mesh castShadow receiveShadow position={[0,-.58,.15]}><boxGeometry args={[2.4,.13,.67]}/><meshStandardMaterial color="#4d3b2c" roughness={.92}/></mesh>
-      {Array.from({length:9},(_,i)=><mesh key={i} castShadow position={[-1.01+i*.2,-.31,.14]} rotation={[0,0,(i%3-1)*.06]}>
-       <boxGeometry args={[.135,.45+((i*7)%5)*.055,.34]}/>
+      {Array.from({length:9},(_,i)=>{
+       const bookHeight=.45+((i*7)%5)*.055;
+       return <mesh key={i} castShadow
+         position={[-1.01+i*.2,-.515+bookHeight/2+.065,.14]}
+         rotation={[0,0,(i%3-1)*.06]}>
+       <boxGeometry args={[.135,bookHeight,.34]}/>
        <meshStandardMaterial color={['#6a7b6a','#997f60','#758173','#a39779'][i%4]} roughness={1}/>
-      </mesh>)}
+      </mesh>})}
       <mesh castShadow position={[.95,-.24,.13]}><cylinderGeometry args={[.16,.19,.46,12]}/><meshStandardMaterial color="#4b614d"/></mesh>
     </group>
     <mesh position={[0,-1.97,-5.14]} receiveShadow><boxGeometry args={[18,.24,.22]}/><meshStandardMaterial color="#554638" roughness={.9}/></mesh>
@@ -183,23 +187,62 @@ function RoomDecor(){
     <CornerPlant/>
  </>;
 }
-function WindowDeskLight(){
+// A real rectangular hole, rather than a solid wall hidden behind a bright
+// window texture. The wall casts occlusion shadows *outside* the opening.
+function RearWallWithOpening(){
+  const wallLeft=-9,wallRight=9,wallBottom=-3.75,wallTop=7.25;
+  const holeLeft=-5.74,holeRight=-2.70,holeBottom=.72,holeTop=3.63;
+  const panels=[
+    [wallLeft,holeLeft,wallBottom,wallTop],
+    [holeRight,wallRight,wallBottom,wallTop],
+    [holeLeft,holeRight,wallBottom,holeBottom],
+    [holeLeft,holeRight,holeTop,wallTop]
+  ];
+  return <group>
+    {panels.map(([left,right,bottom,top],i)=><mesh key={i}
+      position={[(left+right)/2,(bottom+top)/2,-5.43]}
+      castShadow receiveShadow>
+      <planeGeometry args={[right-left,top-bottom]}/>
+      <meshStandardMaterial color="#524b42" roughness={1} side={THREE.DoubleSide}/>
+    </mesh>)}
+  </group>;
+}
+function WindowSunlight(){
   const target=useMemo(()=>{
     const point=new THREE.Object3D();
-    // Focus warm sunshine on the actual tabletop in front of the monitor.
-    point.position.set(-.65,-1.65,1.22);
+    // Everything aims along the same window-to-desktop line. No unrelated
+    // shadow-casting lamp is present on the left wall.
+    point.position.set(-.30,-1.665,1.20);
     return point;
   },[]);
   return <>
     <primitive object={target}/>
-    <spotLight
-      position={[-4.7,4.2,-4.0]}
+    {/* Behind the monitor, just inside the real slatted window. */}
+    <directionalLight
+      position={[-4.22,3.10,-6.05]}
       target={target}
-      color="#ffe2ad"
-      intensity={38}
+      intensity={3.0}
+      color="#ffe0a5"
+      castShadow
+      shadow-mapSize={[2048,2048]}
+      shadow-bias={-.00028}
+      shadow-normalBias={.025}
+      shadow-radius={3.8}
+      shadow-camera-left={-9}
+      shadow-camera-right={9}
+      shadow-camera-top={9}
+      shadow-camera-bottom={-9}
+      shadow-camera-near={.1}
+      shadow-camera-far={25}
+    />
+    <spotLight
+      position={[-4.22,3.10,-6.05]}
+      target={target}
+      color="#ffe8bb"
+      intensity={32}
       distance={17}
-      angle={.55}
-      penumbra={.7}
+      angle={.56}
+      penumbra={.78}
       decay={2}
     />
   </>;
@@ -208,28 +251,14 @@ export default function RetroRoom({reducedMotion=false}){
  return <>
    <color attach="background" args={['#292820']}/>
    <fog attach="fog" args={['#292820',14,29]}/>
-   <ambientLight intensity={1.05} color="#cdbfa7"/>
-   <hemisphereLight args={['#e6ceab','#36362d',.75]}/>
-   {/* Sunlight falls across the monitor, keyboard and mouse and the directional
-       source creates their real-time shadows on the desk. */}
-   <directionalLight
-     position={[-4.7,5.3,-1.2]}
-     intensity={2.65}
-     color="#ffe1ab"
-     castShadow
-     shadow-mapSize={[2048,2048]}
-     shadow-bias={-.00024}
-     shadow-normalBias={.018}
-     shadow-radius={3.5}
-     shadow-camera-left={-9}
-     shadow-camera-right={9}
-     shadow-camera-top={8}
-     shadow-camera-bottom={-8}
-   />
-   <WindowDeskLight/>
-   <pointLight position={[1.8,1.7,2.3]} color="#abcfab" intensity={5} distance={7}/>
-   <pointLight position={[4.2,3.6,-3.8]} color="#ffd7a9" intensity={7} distance={8}/>
-   <mesh receiveShadow position={[0,1.75,-5.43]}><planeGeometry args={[18,11]}/><meshStandardMaterial color="#524b42" roughness={1}/></mesh>
+   <ambientLight intensity={.68} color="#cdbfa7"/>
+   <hemisphereLight args={['#e6ceab','#36362d',.56]}/>
+   <WindowSunlight/>
+   {/* Reflected light from the monitor and walls, deliberately too weak to
+       create a competing shadow direction. */}
+   <pointLight position={[1.8,1.7,2.3]} color="#abcfab" intensity={2.2} distance={7}/>
+   <pointLight position={[4.2,3.6,-3.8]} color="#ffd7a9" intensity={1.8} distance={8}/>
+   <RearWallWithOpening/>
    <mesh receiveShadow position={[-8.5,1.75,0]} rotation={[0,Math.PI/2,0]}><planeGeometry args={[14,11]}/><meshStandardMaterial color="#343830" roughness={1}/></mesh>
    <mesh receiveShadow position={[8.5,1.75,0]} rotation={[0,-Math.PI/2,0]}><planeGeometry args={[14,11]}/><meshStandardMaterial color="#353a33" roughness={1}/></mesh>
    <mesh receiveShadow position={[0,-2.47,0]} rotation={[-Math.PI/2,0,0]}><planeGeometry args={[50,50]}/><meshStandardMaterial color="#292d27" roughness={.98}/></mesh>
