@@ -233,39 +233,34 @@ function SceneContents(props){
 }
 function CameraMotion({zoom=0,reducedMotion=false}){
   const {camera,pointer,size}=useThree();
-  const focus=useMemo(()=>new THREE.Vector3(),[]);
-  const smoothFocus=useMemo(()=>new THREE.Vector3(0,.24,0),[]);
-  const position=useMemo(()=>new THREE.Vector3(),[]);
-  const aimQuat=useMemo(()=>new THREE.Quaternion(),[]);
-  const helper=useMemo(()=>new THREE.PerspectiveCamera(),[]);
+  const target=useMemo(()=>new THREE.Vector3(),[]);
+  const smoothLook=useMemo(()=>new THREE.Vector3(0,.24,0),[]);
   const currentFov=useRef(null);
-  useFrame(({clock},dt)=>{
-    const portrait=size.width/size.height < .82;
-    const fov=portrait?53:37;
-    // Do not recalculate the perspective projection on every frame.
-    if(currentFov.current!==fov){camera.fov=fov;camera.updateProjectionMatrix();currentFov.current=fov;}
-    const delta=Math.min(dt,.07);
-    // Frame-rate-independent damping, deliberately slow and cinematic.
-    const positionEase=1-Math.exp(-delta*3.2);
-    const targetEase=1-Math.exp(-delta*2.6);
-    const rotationEase=1-Math.exp(-delta*3.0);
-    const z=portrait?11.8-zoom*4.0:9.45-zoom*3.15;
-    position.set(0,1.28,z);
-    camera.position.lerp(position,positionEase);
 
-    // Keep the POV centered and only tilt outwards by a few degrees.
-    // Smooth the pointer target first, then ease the camera's actual rotation.
-    const time=reducedMotion?0:clock.elapsedTime;
-    const yaw=reducedMotion?0:pointer.x*.038;
-    const pitch=reducedMotion?0:pointer.y*.023;
-    const wanderX=reducedMotion?0:Math.sin(time*.18)*.002;
-    const wanderY=reducedMotion?0:Math.cos(time*.16)*.0015;
-    focus.set((yaw+wanderX)*z,.24+(pitch+wanderY)*z,0);
-    smoothFocus.lerp(focus,targetEase);
-    helper.position.copy(camera.position);
-    helper.lookAt(smoothFocus);
-    aimQuat.copy(helper.quaternion);
-    camera.quaternion.slerp(aimQuat,rotationEase);
+  useFrame(({clock},delta)=>{
+    const portrait=size.width/size.height<.82;
+    const fov=portrait?53:37;
+    if(currentFov.current!==fov){
+      camera.fov=fov;
+      camera.updateProjectionMatrix();
+      currentFov.current=fov;
+    }
+
+    const z=portrait?11.8-zoom*4:9.45-zoom*3.15;
+    camera.position.set(0,1.28,z);
+
+    // A single, frame-rate-independent smoothing pass avoids the previous
+    // accumulated delay from target lerp + quaternion slerp.
+    const yaw=reducedMotion?0:pointer.x*.024;
+    const pitch=reducedMotion?0:pointer.y*.014;
+    const t=reducedMotion?0:clock.elapsedTime;
+    const driftX=reducedMotion?0:Math.sin(t*.22)*.00065;
+    const driftY=reducedMotion?0:Math.cos(t*.18)*.00048;
+    target.set((yaw+driftX)*z,.24+(pitch+driftY)*z,0);
+
+    const response=1-Math.exp(-Math.min(delta,.075)*11.5);
+    smoothLook.lerp(target,response);
+    camera.lookAt(smoothLook);
   });
   return null;
 }

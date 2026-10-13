@@ -76,55 +76,91 @@ function DustMotes({reducedMotion}){
  useFrame(({clock})=>{resources.mat.uniforms.uTime.value=reducedMotion?0:clock.elapsedTime;});
  return <points geometry={resources.geo} material={resources.mat} frustumCulled={false} renderOrder={4}/>;
 }
-function LampRod({start,end,radius=.055,color='#888775'}){
-  const from=new THREE.Vector3(...start), to=new THREE.Vector3(...end);
-  const direction=to.clone().sub(from);
-  const quaternion=new THREE.Quaternion().setFromUnitVectors(
-    new THREE.Vector3(0,1,0),direction.clone().normalize()
-  );
-  return <mesh position={from.clone().add(to).multiplyScalar(.5).toArray()}
-    quaternion={quaternion} castShadow>
-    <cylinderGeometry args={[radius*.85,radius,direction.length(),14]}/>
-    <meshStandardMaterial color={color} metalness={.48} roughness={.44}/>
-  </mesh>;
+function LeafBlade({length=1,width=.38,color='#567d46',rotation=[0,0,0],position=[0,0,0]}){
+  const geometry=useMemo(()=>{
+    const verts=[],indices=[],segments=12;
+    for(let i=0;i<=segments;i++){
+      const t=i/segments;
+      const halfWidth=width*Math.pow(Math.sin(Math.PI*t),.78);
+      const arc=.15*Math.sin(t*Math.PI)+.05*t*t;
+      const bend=-.10*t*t;
+      verts.push(-halfWidth+bend,t*length,arc*.3);
+      verts.push(bend,t*length,arc);
+      verts.push(halfWidth+bend,t*length,arc*.3);
+      if(i<segments){
+        const v=i*3;
+        indices.push(v,v+3,v+1, v+1,v+3,v+4);
+        indices.push(v+1,v+4,v+2, v+2,v+4,v+5);
+      }
+    }
+    const geo=new THREE.BufferGeometry();
+    geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));
+    geo.setIndex(indices);
+    geo.computeVertexNormals();
+    return geo;
+  },[length,width]);
+  useEffect(()=>()=>geometry.dispose(),[geometry]);
+  return <group position={position} rotation={rotation}>
+    <mesh geometry={geometry} castShadow receiveShadow>
+      <meshStandardMaterial color={color} roughness={.85} side={THREE.DoubleSide}/>
+    </mesh>
+    <mesh position={[-.03,length*.5,.08]} rotation={[0,0,.10]}>
+      <boxGeometry args={[.011,length*.89,.012]}/>
+      <meshStandardMaterial color="#8ca777" roughness={.9}/>
+    </mesh>
+  </group>;
 }
-function DeskLamp(){
-  return <group position={[3.45,-1.65,-.94]}>
-    {/* Stable round foot seated directly on the desktop */}
-    <mesh position={[0,.085,0]} castShadow receiveShadow>
-      <cylinderGeometry args={[.31,.38,.15,32]}/>
-      <meshStandardMaterial color="#5e675b" roughness={.43} metalness={.38}/>
+function CornerPlant(){
+  const leaves=useMemo(()=>Array.from({length:15},(_,i)=>{
+    const a=i*2.39996;
+    const spread=i%3===0?.58:.36;
+    const length=.78+(i%5)*.125;
+    const height=1.02+(i%4)*.12;
+    const baseX=Math.cos(a)*spread*.44;
+    const baseZ=Math.sin(a)*spread*.44;
+    return {a,length,height,baseX,baseZ,
+      color:['#53794d','#648d58','#456e44','#75965b','#577c50'][i%5],
+      tilt:(i%4===0?.44:.63)+(i%3)*.08};
+  }),[]);
+  return <group position={[6.35,-2.44,-4.15]}>
+    {/* Floor-standing ceramic pot, placed behind and to the right of the desk. */}
+    <mesh castShadow receiveShadow position={[0,.41,0]}>
+      <cylinderGeometry args={[.39,.29,.77,32]}/>
+      <meshStandardMaterial color="#9c6f51" roughness={.9}/>
     </mesh>
-    <mesh position={[0,.18,0]} castShadow>
-      <cylinderGeometry args={[.10,.13,.08,20]}/>
-      <meshStandardMaterial color="#8a8b76" metalness={.55} roughness={.4}/>
+    <mesh castShadow receiveShadow position={[0,.79,0]}>
+      <cylinderGeometry args={[.425,.405,.125,32]}/>
+      <meshStandardMaterial color="#b37c55" roughness={.9}/>
     </mesh>
-    <LampRod start={[0,.20,0]} end={[-.09,.88,-.07]} radius={.060}/>
-    <mesh castShadow position={[-.09,.88,-.07]}>
-      <sphereGeometry args={[.12,18,12]}/>
-      <meshStandardMaterial color="#6d7367" metalness={.55} roughness={.35}/>
+    <mesh position={[0,.858,0]}>
+      <cylinderGeometry args={[.365,.365,.024,32]}/>
+      <meshStandardMaterial color="#352e25" roughness={1}/>
     </mesh>
-    <LampRod start={[-.09,.88,-.07]} end={[-.62,1.44,.13]} radius={.048}/>
-    <mesh position={[-.62,1.44,.13]} castShadow>
-      <sphereGeometry args={[.088,16,12]}/>
-      <meshStandardMaterial color="#72786b" roughness={.37} metalness={.6}/>
+    <mesh castShadow position={[0,.95,0]}>
+      <cylinderGeometry args={[.095,.15,.43,12]}/>
+      <meshStandardMaterial color="#405a32" roughness={.91}/>
     </mesh>
-    {/* Bell-shaped metal shade: narrow at the neck, open and wide below. */}
-    <group position={[-.73,1.47,.17]} rotation={[.08,0,-.12]}>
-      <mesh castShadow receiveShadow position={[0,-.26,0]}>
-        <cylinderGeometry args={[.17,.42,.54,40,1,true]}/>
-        <meshStandardMaterial color="#a7a993" metalness={.30} roughness={.57} side={THREE.DoubleSide}/>
-      </mesh>
-      <mesh position={[0,-.53,0]} rotation={[Math.PI/2,0,0]}>
-        <torusGeometry args={[.42,.023,8,40]}/>
-        <meshStandardMaterial color="#788072" roughness={.47} metalness={.5}/>
-      </mesh>
-      <mesh position={[0,-.47,0]}>
-        <sphereGeometry args={[.115,20,14]}/>
-        <meshStandardMaterial color="#f3deb0" emissive="#e6bb76" emissiveIntensity={1.45}/>
-      </mesh>
-      <pointLight position={[0,-.55,0]} intensity={2.25} distance={3.6} color="#ffcc8d"/>
-    </group>
+    {leaves.map((leaf,i)=>{
+      const endX=Math.cos(leaf.a)*.4,endZ=Math.sin(leaf.a)*.4;
+      const curve=new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(0,.94,0),
+        new THREE.Vector3(endX*.4,leaf.height-.17,endZ*.4),
+        new THREE.Vector3(endX,leaf.height,endZ)
+      );
+      return <group key={i}>
+        <mesh castShadow>
+          <tubeGeometry args={[curve,9,.018,6,false]}/>
+          <meshStandardMaterial color="#496943" roughness={.89}/>
+        </mesh>
+        <LeafBlade
+          position={[endX,leaf.height,endZ]}
+          rotation={[Math.sin(leaf.a)*.10,leaf.a,Math.cos(leaf.a)*-leaf.tilt]}
+          length={leaf.length}
+          width={.23+(i%3)*.045}
+          color={leaf.color}
+        />
+      </group>;
+    })}
   </group>;
 }
 function RoomDecor(){
@@ -144,7 +180,7 @@ function RoomDecor(){
       {[0,1,2,3].map(i=><mesh key={i} position={[0,.48-i*.27,.074]}><boxGeometry args={[.95,.014,.005]}/><meshBasicMaterial color="#c3d4b5" transparent opacity={.35}/></mesh>)}
       <mesh position={[0,-.4,.075]}><ringGeometry args={[.16,.17,32]}/><meshBasicMaterial color="#d5d0b1" transparent opacity={.5}/></mesh>
     </group>
-    <DeskLamp/>
+    <CornerPlant/>
  </>;
 }
 function WindowFloorLight(){
