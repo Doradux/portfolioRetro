@@ -51,7 +51,7 @@ Inside Projects, use All / Public / Private / Other to filter and Prev / Next or
 - Press **1–5** to choose a section.
 - Press **← / →** in Projects to change pages. The keyboard's inverted-T arrow cluster reacts to matching physical keys.
 - Press **Escape** to close a project.
-- Press **F** to toggle CRT effects.
+- The physical CRT front-panel button toggles CRT effects; the F key is not a toggle.
 - Use **+ / -** or the mouse wheel for camera zoom.
 - When WebGL is unavailable, an accessible English HTML fallback is displayed.
 
@@ -65,3 +65,13 @@ React 19, Vite 7, Three.js, React Three Fiber, Drei and GLSL shaders.
 
 - GitHub: https://github.com/Doradux
 - LinkedIn: https://www.linkedin.com/in/marcosdorado/
+
+## Display and controls (2026 refresh)
+
+- DORADos branding and /home/dorado/whoami explorer path
+- No keyboard F shortcut to change CRT render effects; use the monitor control button instead
+- Lowered the physical spacebar to match the height of its surrounding keys
+- Warm window sunshine is directed over the desk and casts dynamic shadows from the monitor, mouse and keyboard
+- Zooming raises the camera and focal point together, preserving the top edge of the CRT
+- The wired, rectangular mouse stays constrained to the desk and depresses the left/right buttons separately
+- Native right-click context menus are prevented inside the immersive scene

@@ -28,7 +28,6 @@ function Keyboard(){
   const pressed=useRef(new Set());
   const heights=useRef(new Float32Array(KEY_LAYOUT.length));
   const spaceHeight=useRef(0);
-  const lastFrame=useRef(0);
 
   useEffect(()=>{
     const down=e=>{
@@ -82,7 +81,7 @@ function Keyboard(){
     const target=active.has('Space')?.060:0;
     const next=THREE.MathUtils.lerp(spaceHeight.current,target,easing);
     spaceHeight.current=Math.abs(next-target)<.0005?target:next;
-    if(space.current)space.current.position.y=.235-spaceHeight.current;
+    if(space.current)space.current.position.y=.193-spaceHeight.current;
   });
 
   return <group position={[-.23,-1.49,2.38]} rotation={[-.10,-.02,0]}>
@@ -92,7 +91,7 @@ function Keyboard(){
       <boxGeometry args={[.164,.092,.153]}/>
       <meshStandardMaterial color="#eae5d2" roughness={.9}/>
     </instancedMesh>
-    <Plastic ref={space} size={[.93,.091,.16]} position={[-.23,.235,.473]} radius={.03} color="#c1baa5"/>
+    <Plastic ref={space} size={[.93,.091,.16]} position={[-.23,.193,.473]} radius={.03} color="#c1baa5"/>
   </group>;
 }
 
@@ -140,11 +139,26 @@ function RoundedOutline({outerWidth,outerHeight,innerWidth,innerHeight,depth=.08
 
 const MOUSE_BOUNDARIES={minX:2.37,maxX:3.03,minZ:2.15,maxZ:2.89};
 
+const CABLE_SEGMENTS=28;
 function MouseAndShadow(){
   const {pointer}=useThree();
   const mouse=useRef();
   const shade=useRef();
-  const click=useRef(-1);
+  const leftButton=useRef();
+  const rightButton=useRef();
+  const cable=useRef();
+  const pressed=useRef(new Set());
+  const dummy=useMemo(()=>new THREE.Object3D(),[]);
+  const previous=useMemo(()=>new THREE.Vector3(),[]);
+  const next=useMemo(()=>new THREE.Vector3(),[]);
+  const tangent=useMemo(()=>new THREE.Vector3(),[]);
+  const axis=useMemo(()=>new THREE.Vector3(0,1,0),[]);
+  const curve=useMemo(()=>new THREE.CubicBezierCurve3(
+    new THREE.Vector3(2.70,-1.42,2.05),
+    new THREE.Vector3(2.90,-1.36,1.50),
+    new THREE.Vector3(2.35,-1.49,1.15),
+    new THREE.Vector3(2.26,-1.51,.99)
+  ),[]);
   const texture=useMemo(()=>{
     const canvas=document.createElement('canvas');canvas.width=128;canvas.height=128;
     const ctx=canvas.getContext('2d');
@@ -157,9 +171,9 @@ function MouseAndShadow(){
   },[]);
   useEffect(()=>()=>texture.dispose(),[texture]);
   useEffect(()=>{
-    const down=e=>{if(e.button===0||e.button===2)click.current=e.button;};
-    const up=e=>{if(e.button===click.current)click.current=-1;};
-    const reset=()=>{click.current=-1;};
+    const down=e=>{if(e.button===0||e.button===2)pressed.current.add(e.button);};
+    const up=e=>pressed.current.delete(e.button);
+    const reset=()=>pressed.current.clear();
     window.addEventListener('pointerdown',down);
     window.addEventListener('pointerup',up);
     window.addEventListener('pointercancel',reset);
@@ -172,38 +186,64 @@ function MouseAndShadow(){
     };
   },[]);
   useFrame((_,dt)=>{
-    if(!mouse.current||!shade.current)return;
-    // Tracking the cursor does not hide, replace or lock the real browser pointer.
-    // Clamping ensures the physical mouse cannot escape the tabletop.
+    if(!mouse.current||!shade.current||!leftButton.current||!rightButton.current||!cable.current)return;
     const targetX=THREE.MathUtils.clamp(2.70+pointer.x*.34,MOUSE_BOUNDARIES.minX,MOUSE_BOUNDARIES.maxX);
     const targetZ=THREE.MathUtils.clamp(2.50-pointer.y*.36,MOUSE_BOUNDARIES.minZ,MOUSE_BOUNDARIES.maxZ);
     const ease=1-Math.exp(-Math.min(dt,.07)*13.5);
-    const destY=-1.49+(click.current===-1?0:-.015);
     mouse.current.position.x=THREE.MathUtils.lerp(mouse.current.position.x,targetX,ease);
     mouse.current.position.z=THREE.MathUtils.lerp(mouse.current.position.z,targetZ,ease);
-    mouse.current.position.y=THREE.MathUtils.lerp(mouse.current.position.y,destY,ease);
-    mouse.current.rotation.z=THREE.MathUtils.lerp(mouse.current.rotation.z,-.15+(click.current===0?.035:click.current===2?-.035:0),ease);
     shade.current.position.x=mouse.current.position.x;
     shade.current.position.z=mouse.current.position.z;
+    // Each button moves independently. The housing remains stationary.
+    leftButton.current.position.y=THREE.MathUtils.lerp(
+      leftButton.current.position.y,.121-(pressed.current.has(0)?.032:0),ease);
+    rightButton.current.position.y=THREE.MathUtils.lerp(
+      rightButton.current.position.y,.121-(pressed.current.has(2)?.032:0),ease);
+
+    // The cord is made of lightweight instanced cylinder links, recalculated
+    // from the movable mouse front to the fixed connector behind it.
+    curve.v0.set(mouse.current.position.x,-1.415,mouse.current.position.z-.426);
+    curve.v1.set(mouse.current.position.x+.13,-1.395,mouse.current.position.z-.98);
+    curve.v2.set(2.45,-1.52,1.21);
+    curve.v3.set(2.26,-1.51,.99);
+    curve.getPoint(0,previous);
+    for(let i=0;i<CABLE_SEGMENTS;i++){
+      curve.getPoint((i+1)/CABLE_SEGMENTS,next);
+      dummy.position.copy(previous).add(next).multiplyScalar(.5);
+      dummy.quaternion.setFromUnitVectors(axis,tangent.subVectors(next,previous).normalize());
+      dummy.scale.set(1,previous.distanceTo(next)+.009,1);
+      dummy.updateMatrix();
+      cable.current.setMatrixAt(i,dummy.matrix);
+      previous.copy(next);
+    }
+    cable.current.instanceMatrix.needsUpdate=true;
   });
   return <group>
-    {/* Shadow follows the physical mouse without clipping through the desk. */}
     <mesh ref={shade} position={[2.70,-1.657,2.50]} rotation={[-Math.PI/2,0,-.15]} renderOrder={1}>
-      <planeGeometry args={[.90,1.25]}/>
-      <meshBasicMaterial map={texture} transparent depthWrite={false} opacity={.7} polygonOffset polygonOffsetFactor={-2}/>
+      <planeGeometry args={[.95,1.27]}/>
+      <meshBasicMaterial map={texture} transparent depthWrite={false} opacity={.68} polygonOffset polygonOffsetFactor={-2}/>
     </mesh>
+    <instancedMesh ref={cable} args={[undefined,undefined,CABLE_SEGMENTS]} castShadow>
+      <cylinderGeometry args={[.013,.013,1,7]}/>
+      <meshStandardMaterial color="#31332c" roughness={.95}/>
+    </instancedMesh>
     <group ref={mouse} position={[2.70,-1.49,2.50]} rotation={[0,-.15,0]}>
-      <mesh scale={[.30,.16,.48]} castShadow>
-        <sphereGeometry args={[1,36,24]}/>
-        <meshStandardMaterial color="#dfdac5" roughness={.76}/>
+      {/* Squarish 90s mouse shell with gently rounded rectangular corners. */}
+      <Plastic size={[.60,.195,.86]} position={[0,0,0]} radius={.072} color="#ddd4b9"/>
+      <Plastic size={[.565,.065,.52]} position={[0,.051,.116]} radius={.042} color="#c9bfa6"/>
+      <Plastic ref={leftButton} size={[.253,.042,.30]} position={[-.142,.121,-.215]} radius={.027} color="#f1ead5"/>
+      <Plastic ref={rightButton} size={[.253,.042,.30]} position={[.142,.121,-.215]} radius={.027} color="#eae2ca"/>
+      <mesh position={[0,.135,-.212]} rotation={[0,0,Math.PI/2]}>
+        <cylinderGeometry args={[.033,.033,.062,18]}/>
+        <meshStandardMaterial color="#676e67" roughness={.67}/>
       </mesh>
-      <mesh position={[0,.154,-.16]} rotation={[-.09,0,0]}>
-        <boxGeometry args={[.013,.012,.19]}/>
-        <meshStandardMaterial color="#888a79" roughness={.85}/>
+      <mesh position={[0,.159,-.22]}>
+        <boxGeometry args={[.010,.005,.074]}/>
+        <meshStandardMaterial color="#3e453e" roughness={.9}/>
       </mesh>
-      <mesh position={[0,.158,-.14]} rotation={[-Math.PI/2,0,0]}>
-        <cylinderGeometry args={[.025,.025,.065,14]}/>
-        <meshStandardMaterial color="#6f7369" roughness={.66}/>
+      <mesh position={[0,.055,-.421]}>
+        <cylinderGeometry args={[.052,.052,.061,16]}/>
+        <meshStandardMaterial color="#ada58c" roughness={.85}/>
       </mesh>
     </group>
   </group>;
@@ -249,6 +289,7 @@ function Monitor({page,selectedProject,onNavigate,onProject,projectPage,projectF
     if(idx!==hovered.current){hovered.current=idx;redraw();document.body.style.cursor=idx>=0?'pointer':'auto';}
   }
   function click(e){
+    if(e.button!==0)return;
     e.stopPropagation();const idx=hit(e);if(idx<0)return;
     const r=regions.current[idx];
     if(r.action==='project')onProject(r.id);
@@ -321,7 +362,9 @@ function CameraMotion({zoom=0,reducedMotion=false}){
     }
 
     const z=portrait?11.8-zoom*4:9.45-zoom*3.15;
-    camera.position.set(0,1.28,z);
+    // Raise the eye and the focal point as we approach the CRT, keeping
+    // the complete top frame visible even with the zoom at its maximum.
+    camera.position.set(0,1.28+zoom*.60,z);
 
     // A single, frame-rate-independent smoothing pass avoids the previous
     // accumulated delay from target lerp + quaternion slerp.
@@ -330,7 +373,7 @@ function CameraMotion({zoom=0,reducedMotion=false}){
     const t=reducedMotion?0:clock.elapsedTime;
     const driftX=reducedMotion?0:Math.sin(t*.22)*.00065;
     const driftY=reducedMotion?0:Math.cos(t*.18)*.00048;
-    target.set((yaw+driftX)*z,.24+(pitch+driftY)*z,0);
+    target.set((yaw+driftX)*z,.24+zoom*.91+(pitch+driftY)*z,0);
 
     const response=1-Math.exp(-Math.min(delta,.075)*11.5);
     smoothLook.lerp(target,response);

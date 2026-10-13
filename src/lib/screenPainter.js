@@ -219,12 +219,12 @@ export function drawScreen(canvas,page,selected,hovered,projectPage=0,projectFil
   line(ctx,0,84,SW,'#3c5751');
   rr(ctx,28,20,47,45,8,C.lime);
   mono(ctx,'MD',36,50,20,'#172b28',700);
-  mono(ctx,'DORADO_OS',96,49,22,C.text,700);
+  mono(ctx,'DORADos',96,49,22,C.text,700);
   mono(ctx,'v.26.10',331,49,16,C.muted);
   mono(ctx,'●  ONLINE',992,50,17,C.lime,700);
   ctx.fillStyle='#122526';ctx.fillRect(0,86,268,814);
   line(ctx,268,86,1,'#3c5751');
-  mono(ctx,'/ROOT/DORADO',35,157,18,C.lime,700);
+  mono(ctx,'/home/dorado/whoami',35,157,18,C.lime,700);
   mono(ctx,'EXPLORER',35,199,14,C.muted);
   navItems.forEach((item,i)=>{
     const y=235+i*79,active=item.id===page;

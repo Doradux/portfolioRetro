@@ -9,7 +9,7 @@ const shortcuts = { '1':'home', '2':'about', '3':'projects', '4':'skills', '5':'
 function BrowserFallback({page,onNavigate}){
   return <div className="webgl-fallback">
     <div className="fallback-window">
-      <div className="fallback-title">▣ DORADO_OS <span>GRAPHICS DRIVER UNAVAILABLE</span></div>
+      <div className="fallback-title">▣ DORADos <span>GRAPHICS DRIVER UNAVAILABLE</span></div>
       <nav aria-label="Portfolio sections">{navItems.map(n=>
         <button type="button" onClick={()=>onNavigate(n.id)} aria-current={page===n.id?'page':undefined} key={n.id}>
           {n.key} {n.label}
@@ -60,7 +60,6 @@ export default function App(){
         e.preventDefault();
         if(!e.repeat)turnProjectPage(e.key==='ArrowRight'?1:-1);
       }
-      if(e.key.toLowerCase()==='f')setEffects(current=>!current);
       if(e.key==='+'||e.key==='=')setZoom(z=>Math.min(1,z+.15));
       if(e.key==='-')setZoom(z=>Math.max(0,z-.15));
       if(e.key==='0')setZoom(0);
@@ -69,6 +68,7 @@ export default function App(){
     return ()=>window.removeEventListener('keydown',onKey);
   },[navigate,page,selectedProject,turnProjectPage]);
   return <main className="immersive-portfolio" aria-label="Marcos Dorado 3D portfolio"
+    onContextMenu={e=>e.preventDefault()}
     onWheel={e=>{if(hasWebGL)setZoom(z=>Math.max(0,Math.min(1,z+e.deltaY*.0008)));}}
     onTouchStart={e=>{if(e.touches.length===2){setTouchGap(Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY));}}}
     onTouchMove={e=>{if(e.touches.length===2&&touchGap!==null){
@@ -78,7 +78,7 @@ export default function App(){
     }}}
     onTouchEnd={e=>{if(e.touches.length<2)setTouchGap(null);}}>
     {hasWebGL?
-      <Suspense fallback={<div className="boot-screen"><span className="boot-cursor">▣</span> BOOTING DORADO_OS...</div>}>
+      <Suspense fallback={<div className="boot-screen"><span className="boot-cursor">▣</span> BOOTING DORADos...</div>}>
         <RetroComputer zoom={zoom} page={page} selectedProject={selectedProject}
           onNavigate={navigate} onProject={openProject}
           projectPage={projectPage} projectFilter={projectFilter}
@@ -90,7 +90,7 @@ export default function App(){
     }
     <div className="sr-only" role="note">
       Marcos Dorado interactive portfolio. All navigation is inside the computer screen.
-      Press 1–5 to navigate, left/right arrows to turn project pages, Escape to go back, F to toggle CRT effects, and use the mouse wheel to zoom.
+      Press 1–5 to navigate, left/right arrows to turn project pages, Escape to go back, and use the mouse wheel to zoom.
     </div>
   </main>;
 }

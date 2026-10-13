@@ -31,10 +31,10 @@ function LightShafts({reducedMotion}){
  const geometries=useMemo(()=>{
    const arr=[];
    for(let k=0;k<7;k++)for(let layer=0;layer<3;layer++){
-     // The rear edge of the desk is z = -3.03; every shaft stays
-     // behind that edge and ends at floor level (y = -2.47).
-     const sx=-5.3+k*.34,sy=3.3-k*.075,sz=-4.99+layer*.035;
-     const ex=-6.12+k*.42,ey=-2.445,ez=-3.82-layer*.065;
+     // Retro sunlight falls across the desktop (not just the rear floor).
+     // The ribbons fade before the bottom rather than ending abruptly.
+     const sx=-5.3+k*.34,sy=3.3-k*.075,sz=-4.99+layer*.10;
+     const ex=-3.45+k*.41,ey=-1.54,ez=1.4+layer*.68;
      const width=.15+layer*.11;
      const geo=new THREE.BufferGeometry();
      geo.setAttribute('position',new THREE.Float32BufferAttribute([
@@ -57,10 +57,10 @@ function DustMotes({reducedMotion}){
    let seed=1543;const rnd=()=>{seed=(Math.imul(1664525,seed)+1013904223)>>>0;return seed/4294967296;};
    for(let i=0;i<total;i++){
      const t=rnd(),b=rnd();
-     // Dust floats inside the rear window light, not over the desktop.
-     pos[i*3]=-5.5+t*(-.25+b*1.75)+(rnd()-.5)*.75;
-     pos[i*3+1]=3.5-t*5.5+(rnd()-.5)*.5;
-     pos[i*3+2]=-4.95+t*1.25+(rnd()-.5)*.32;
+     // Floating dust follows the beam all the way towards the desk.
+     pos[i*3]=-5.2+t*(2.1+b*2.7)+(rnd()-.5)*1.4;
+     pos[i*3+1]=3.8-t*5.2+(rnd()-.5)*1.4;
+     pos[i*3+2]=-4.7+t*8.5+(rnd()-.5)*1.9;
      phase[i]=rnd()*6.283;speed[i]=.09+rnd()*.23;
    }
    const geo=new THREE.BufferGeometry();
@@ -183,23 +183,23 @@ function RoomDecor(){
     <CornerPlant/>
  </>;
 }
-function WindowFloorLight(){
+function WindowDeskLight(){
   const target=useMemo(()=>{
     const point=new THREE.Object3D();
-    // Spot lands on the bare floor to the left/rear of the desk.
-    point.position.set(-5.75,-2.445,-3.94);
+    // Focus warm sunshine on the actual tabletop in front of the monitor.
+    point.position.set(-.65,-1.65,1.22);
     return point;
   },[]);
   return <>
     <primitive object={target}/>
     <spotLight
-      position={[-4.7,3.55,-4.97]}
+      position={[-4.7,4.2,-4.0]}
       target={target}
-      color="#ffe3b1"
-      intensity={27}
-      distance={10}
-      angle={.235}
-      penumbra={.65}
+      color="#ffe2ad"
+      intensity={38}
+      distance={17}
+      angle={.55}
+      penumbra={.7}
       decay={2}
     />
   </>;
@@ -210,10 +210,23 @@ export default function RetroRoom({reducedMotion=false}){
    <fog attach="fog" args={['#292820',14,29]}/>
    <ambientLight intensity={1.05} color="#cdbfa7"/>
    <hemisphereLight args={['#e6ceab','#36362d',.75]}/>
-   {/* Neutral room fill keeps the hardware readable without spilling
-       warm sunlight across the desktop. Actual window light hits the floor. */}
-   <directionalLight position={[4.2,5.3,2.4]} intensity={1.45} color="#e2ded2"/>
-   <WindowFloorLight/>
+   {/* Sunlight falls across the monitor, keyboard and mouse and the directional
+       source creates their real-time shadows on the desk. */}
+   <directionalLight
+     position={[-4.7,5.3,-1.2]}
+     intensity={2.65}
+     color="#ffe1ab"
+     castShadow
+     shadow-mapSize={[2048,2048]}
+     shadow-bias={-.00024}
+     shadow-normalBias={.018}
+     shadow-radius={3.5}
+     shadow-camera-left={-9}
+     shadow-camera-right={9}
+     shadow-camera-top={8}
+     shadow-camera-bottom={-8}
+   />
+   <WindowDeskLight/>
    <pointLight position={[1.8,1.7,2.3]} color="#abcfab" intensity={5} distance={7}/>
    <pointLight position={[4.2,3.6,-3.8]} color="#ffd7a9" intensity={7} distance={8}/>
    <mesh receiveShadow position={[0,1.75,-5.43]}><planeGeometry args={[18,11]}/><meshStandardMaterial color="#524b42" roughness={1}/></mesh>
