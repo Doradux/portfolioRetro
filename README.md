@@ -92,3 +92,14 @@ the operating system's key-repeat events. Key, mouse and room audio are decoded
 with Web Audio; room ambience remains quiet and starts after the first real
 user interaction, avoiding blocked autoplay. Unsupported audio simply fails
 silently without stopping the 3D portfolio.
+
+## Sound controls and favicon
+
+The browser title is **Marcos Dorado**. The favicon is a transparent, cropped
+illustration of a beige CRT monitor saved as **public/favicon.png**.
+
+The fixed top-right **sound control** is outside the computer's 3D scene and
+works on desktop and mobile. It mutes/unmutes all Web Audio with a single
+master gain, including clicks, keyboard and the continuous room ambience.
+The preference is stored in browser localStorage and survives reloads.
+The mute button doesn't create a physical 3D mouse click.

@@ -3,6 +3,7 @@ import RetroComputer from './components/RetroComputer.jsx';
 import { navItems, projects, socials, tech, experiences } from './lib/content.js';
 import { filterProjects, PROJECTS_PER_PAGE } from './lib/screenPainter.js';
 import './styles.css';
+import { setAudioMuted } from './lib/retroAudio.js';
 
 const shortcuts = { '1':'home', '2':'about', '3':'projects', '4':'skills', '5':'contact' };
 
@@ -30,6 +31,17 @@ export default function App(){
   const [projectPage,setProjectPage]=useState(0);
   const [projectFilter,setProjectFilter]=useState('all');
   const [zoom,setZoom]=useState(0);
+  const [muted,setMuted]=useState(()=>{
+    try { return window.localStorage.getItem('dorados-muted')==='true'; }
+    catch { return false; }
+  });
+  useEffect(()=>{setAudioMuted(muted);},[muted]);
+  const toggleMute=useCallback(()=>{
+    const next=!muted;
+    setAudioMuted(next);
+    setMuted(next);
+    try { window.localStorage.setItem('dorados-muted',String(next)); } catch {}
+  },[muted]);
   const [touchGap,setTouchGap]=useState(null);
   const [effects,setEffects]=useState(()=>!window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const [reducedMotion]=useState(()=>window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -77,6 +89,25 @@ export default function App(){
       setTouchGap(next);
     }}}
     onTouchEnd={e=>{if(e.touches.length<2)setTouchGap(null);}}>
+    <button type="button" className="sound-toggle"
+      onClick={toggleMute}
+      onPointerDown={e=>e.stopPropagation()}
+      onPointerUp={e=>e.stopPropagation()}
+      onKeyDown={e=>e.stopPropagation()}
+      onKeyUp={e=>e.stopPropagation()}
+      aria-label={muted?'Unmute sounds':'Mute sounds'}
+      aria-pressed={muted}
+      title={muted?'Unmute sounds':'Mute sounds'}>
+      <svg viewBox="0 0 24 24" width="21" height="21"
+        aria-hidden="true" fill="none" stroke="currentColor"
+        strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M11 5 6 9H3v6h3l5 4V5Z"/>
+        {muted?
+          <><path d="m16 9 5 6M21 9l-5 6"/></>:
+          <><path d="M15.5 8.5a5 5 0 0 1 0 7"/>
+            <path d="M18.4 5.6a9 9 0 0 1 0 12.8"/></>}
+      </svg>
+    </button>
     {hasWebGL?
       <Suspense fallback={<div className="boot-screen"><span className="boot-cursor">▣</span> BOOTING DORADos...</div>}>
         <RetroComputer zoom={zoom} page={page} selectedProject={selectedProject}

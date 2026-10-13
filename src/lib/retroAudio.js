@@ -8,9 +8,31 @@ const AUDIO = {
   room: '/audio/room.mp3',
 };
 let context = null;
+let masterGain = null;
+let muted = false;
 let loading = null;
 const buffers = new Map();
 let roomStarted = false;
+
+// One master volume controls samples already in progress AND the looping
+// room ambience, so muting never leaves a background source audible.
+export function setAudioMuted(next) {
+  muted = Boolean(next);
+  if (context && masterGain) {
+    const t = context.currentTime;
+    masterGain.gain.cancelScheduledValues(t);
+    // Immediate mute works whether the context is running or suspended.
+    // Keep the ambience and any already-playing sample behind this gain.
+    masterGain.gain.value = muted ? 0 : 1;
+  }
+  if (!muted) {
+    // This also resumes the suspended room loop when the user clicks Unmute.
+    // The button itself is a valid browser playback user gesture.
+    audioFromGesture();
+    startRoom();
+  }
+}
+export function isAudioMuted() { return muted; }
 
 export function toneForKey(code) {
   // FNV-1a gives each physical KeyboardEvent.code a stable sonic identity.
@@ -34,7 +56,12 @@ function getContext() {
   if (typeof window === 'undefined') return null;
   const Ctor = window.AudioContext || window.webkitAudioContext;
   if (!Ctor) return null;
-  try { context = new Ctor(); } catch { return null; }
+  try {
+    context = new Ctor();
+    masterGain = context.createGain();
+    masterGain.gain.value = muted ? 0 : 1;
+    masterGain.connect(context.destination);
+  } catch { return null; }
   return context;
 }
 export function preloadSounds() {
@@ -63,11 +90,12 @@ function audioFromGesture() {
   return ctx;
 }
 function playSample(kind, settings = null) {
+  if (muted) return;
   const ctx = audioFromGesture();
   if (!ctx) return;
   const started = performance.now();
   const play = () => {
-    if (performance.now() - started > 400) return; // don't play stale inputs
+    if (muted || performance.now() - started > 400) return; // don't play stale inputs
     const buffer = buffers.get(kind);
     if (!buffer) return;
     const source = ctx.createBufferSource();
@@ -91,7 +119,7 @@ function playSample(kind, settings = null) {
     } else {
       source.connect(volume);
     }
-    volume.connect(ctx.destination);
+    volume.connect(masterGain);
     source.onended = () => {
       source.disconnect();
       volume.disconnect();
@@ -113,6 +141,7 @@ export function playMouseUp() {
   playSample('mouseUp');
 }
 function startRoom() {
+  if (muted) return;
   const ctx = audioFromGesture();
   if (!ctx || roomStarted) return;
   roomStarted = true;
@@ -130,7 +159,7 @@ function startRoom() {
     const volume = ctx.createGain();
     volume.gain.value = .11;
     source.connect(volume);
-    volume.connect(ctx.destination);
+    volume.connect(masterGain);
     source.start();
   };
   if (buffers.has('room')) play();
