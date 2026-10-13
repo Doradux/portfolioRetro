@@ -84,3 +84,20 @@ assert(styleSource.includes('.sound-toggle{')&&styleSource.includes('position:fi
 assert(audioSource.includes('masterGain.gain.value = muted ? 0 : 1;'));
 assert(audioSource.includes('volume.connect(masterGain)'));
 console.log('PASS: mute controls, persistent preference, exact page title and transparent favicon');
+
+
+import {screenRegionAtUv} from '../src/lib/screenHit.js';
+const viewW=1200,viewH=900;
+const next={x:448,y:799,w:116,h:37,action:'project-page',id:1};
+const prev={x:316,y:799,w:116,h:37,action:'project-page',id:-1};
+const uvAt=r=>({x:(r.x+r.w/2)/viewW,y:1-(r.y+r.h/2)/viewH});
+assert.equal(screenRegionAtUv([next],uvAt(next),viewW,viewH),0);
+assert.equal(screenRegionAtUv([prev,next],uvAt(next),viewW,viewH),1);
+assert.equal(screenRegionAtUv([prev,next],uvAt(prev),viewW,viewH),0);
+assert.equal(screenRegionAtUv([prev],uvAt(next),viewW,viewH),-1);
+assert.equal(screenRegionAtUv([next],uvAt(prev),viewW,viewH),-1);
+assert.equal(screenRegionAtUv([next],null,viewW,viewH),-1);
+assert(sceneSource.includes('const pointerUv=useRef(null)'));
+assert(sceneSource.includes('screenRegionAtUv(currentRegions,pointerUv.current,SW,SH)'));
+assert(!sceneSource.includes('hovered.current=-1;redraw()'));
+console.log('PASS: CRT hover stays with the cursor after pagination and disappears on disabled controls');

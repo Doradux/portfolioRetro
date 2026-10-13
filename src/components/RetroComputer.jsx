@@ -5,6 +5,7 @@ import RetroRoom from './RetroRoom.jsx';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import * as THREE from 'three';
 import { drawScreen, SW, SH } from '../lib/screenPainter.js';
+import { screenRegionAtUv } from '../lib/screenHit.js';
 import { KEY_LAYOUT } from '../lib/keyboardLayout.js';
 import { preloadSounds, playKeyboard, playMouseDown, playMouseUp } from '../lib/retroAudio.js';
 import { createMouseButtonTracker } from '../lib/mouseButtonTracker.js';
@@ -310,6 +311,9 @@ function Monitor({page,selectedProject,onNavigate,onProject,projectPage,projectF
   const canvas=useMemo(()=>{const c=document.createElement('canvas');c.width=SW;c.height=SH;return c;},[]);
   const texture=useMemo(()=>{const t=new THREE.CanvasTexture(canvas);t.anisotropy=8;t.colorSpace=THREE.SRGBColorSpace;return t;},[canvas]);
   const regions=useRef([]), hovered=useRef(-1);
+  // Keep the actual screen-space pointer position across CRT content updates.
+  // Changing pages does not fire another pointermove when the cursor is still.
+  const pointerUv=useRef(null);
   const shader=useMemo(()=>new THREE.ShaderMaterial({
     uniforms:{uMap:{value:texture},uTime:{value:0},uEffects:{value:1}},
     vertexShader,fragmentShader,side:THREE.FrontSide,toneMapped:false
@@ -319,24 +323,38 @@ function Monitor({page,selectedProject,onNavigate,onProject,projectPage,projectF
     for(let i=0;i<p.count;i++){const x=p.getX(i)/1.77,y=p.getY(i)/1.325;p.setZ(i,.10*(1-x*x)*(1-y*y));}
     geo.computeVertexNormals();return geo;
   },[]);
-  function redraw(){regions.current=drawScreen(canvas,page,selectedProject,hovered.current,projectPage,projectFilter);texture.needsUpdate=true;}
-  useEffect(()=>{
-    hovered.current=-1;redraw();document.fonts.ready.then(redraw);
-  },[page,selectedProject,projectPage,projectFilter,canvas,texture]);
-  useEffect(()=>()=>{shader.dispose();texture.dispose();screenGeo.dispose();},[shader,texture,screenGeo]);
-  useFrame(({clock})=>{shader.uniforms.uTime.value=clock.elapsedTime;shader.uniforms.uEffects.value=effects?1:0;});
-  function hit(e){
-    if(!e.uv)return -1;
-    const x=e.uv.x*SW,y=(1-e.uv.y)*SH;
-    return regions.current.findIndex(r=>x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h);
+  function redraw(){
+    // First reconstruct the current page's interactive regions, then resolve
+    // hover using the last real pointer position (not an outdated region index).
+    const currentRegions=drawScreen(canvas,page,selectedProject,-1,projectPage,projectFilter);
+    const idx=screenRegionAtUv(currentRegions,pointerUv.current,SW,SH);
+    hovered.current=idx;
+    if(idx>=0)drawScreen(canvas,page,selectedProject,idx,projectPage,projectFilter);
+    regions.current=currentRegions;
+    texture.needsUpdate=true;
+    document.body.style.cursor=idx>=0?'pointer':'auto';
   }
+  useEffect(()=>{
+    redraw();
+    let active=true;
+    // Ignore stale async font callbacks from a page that has since changed.
+    document.fonts.ready.then(()=>{if(active)redraw();});
+    return ()=>{active=false;};
+  },[page,selectedProject,projectPage,projectFilter,canvas,texture]);
+  useEffect(()=>()=>{shader.dispose();texture.dispose();screenGeo.dispose();document.body.style.cursor='auto';},[shader,texture,screenGeo]);
+  useFrame(({clock})=>{shader.uniforms.uTime.value=clock.elapsedTime;shader.uniforms.uEffects.value=effects?1:0;});
   function move(e){
-    e.stopPropagation();const idx=hit(e);
-    if(idx!==hovered.current){hovered.current=idx;redraw();document.body.style.cursor=idx>=0?'pointer':'auto';}
+    e.stopPropagation();
+    pointerUv.current=e.uv?{x:e.uv.x,y:e.uv.y}:null;
+    const idx=screenRegionAtUv(regions.current,pointerUv.current,SW,SH);
+    if(idx!==hovered.current)redraw();
   }
   function click(e){
     if(e.button!==0)return;
-    e.stopPropagation();const idx=hit(e);if(idx<0)return;
+    e.stopPropagation();
+    pointerUv.current=e.uv?{x:e.uv.x,y:e.uv.y}:null;
+    const idx=screenRegionAtUv(regions.current,pointerUv.current,SW,SH);
+    if(idx<0)return;
     const r=regions.current[idx];
     if(r.action==='project')onProject(r.id);
     else if(r.action==='project-page')onProjectPage(r.id);
@@ -345,6 +363,11 @@ function Monitor({page,selectedProject,onNavigate,onProject,projectPage,projectF
       if(r.id.startsWith('mailto:'))window.location.href=r.id;
       else window.open(r.id,'_blank','noopener,noreferrer');
     } else onNavigate(r.action);
+  }
+  function leave(){
+    pointerUv.current=null;
+    if(hovered.current!==-1)redraw();
+    else document.body.style.cursor='auto';
   }
   return <group>
     <Plastic size={[3.67,2.91,1.30]} position={[0,.86,-.58]} radius={.30} color="#bab399"/>
@@ -360,7 +383,7 @@ function Monitor({page,selectedProject,onNavigate,onProject,projectPage,projectF
       outerRadius={.17} innerRadius={.13} color="#8d9585" z={.538}/>
     <mesh geometry={screenGeo} material={shader} position={[0,1.00,.622]}
       onPointerMove={move}
-      onPointerOut={()=>{hovered.current=-1;redraw();document.body.style.cursor='auto';}}
+      onPointerOut={leave}
       onPointerDown={click}
     />
     <Plastic size={[3.68,.015,.022]} position={[0,-.595,.478]} radius={.003} color="#a5a28c"/>

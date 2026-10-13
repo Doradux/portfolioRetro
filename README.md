@@ -107,3 +107,13 @@ works on desktop and mobile. It mutes/unmutes all Web Audio with a single
 master gain, including clicks, keyboard and the continuous room ambience.
 The preference is stored in browser localStorage and survives reloads.
 The mute button doesn't create a physical 3D mouse click.
+
+
+## Cursor interaction continuity
+
+The CRT pointer hover is tracked by the last actual UV hit point, not by a
+stale region index. When a project page/filter/detail view changes, the
+monitor redraws its hit regions and recalculates hover in-place. The cursor
+and visual highlight remain active beneath an unmoved pointer; pagination
+buttons lose hover only at disabled page boundaries or when the pointer
+actually leaves the screen.
