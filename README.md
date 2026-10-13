@@ -80,10 +80,14 @@ React 19, Vite 7, Three.js, React Three Fiber, Drei and GLSL shaders.
 ## Retro audio
 
 The audio samples are drawn from the recordings supplied for this portfolio.
-Mouse clicking plays the **press** transient on pointerdown and the **release**
-transient only when the button is actually released. Holding a button does not
+Mouse clicking plays the **press** transient on mousedown and the **release**
+transient only when that button is actually released. Holding a button does not
 schedule or replay the release sound. Left and right buttons are tracked
-independently, even outside the 3D mouse mesh.
+independently, including simultaneous presses and releases in either order.
+MouseEvent.buttons reconciles missed events after leaving/re-entering the viewport;
+blur and page hiding also clear held visual states so no button stays pressed.
+The input tracker lives in src/lib/mouseButtonTracker.js and has automated
+two-button regression tests.
 
 Keyboard presses use the physical key code as a stable hash seed for subtle
 pitch, cutoff-frequency, stereo and level differences. A always sounds like A,

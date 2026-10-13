@@ -58,8 +58,10 @@ assert(toneForKey('KeyA').rate>0.94 && toneForKey('KeyA').rate<1.06);
 for(const asset of ['mouse-down.mp3','mouse-up.mp3','keyboard.mp3','room.mp3']){
   assert(statSync(new URL('../public/audio/'+asset,import.meta.url)).size>500,asset+' is missing');
 }
-assert(sceneSource.includes('playMouseDown()'));
-assert(sceneSource.includes('playMouseUp()'));
+assert(sceneSource.includes('createMouseButtonTracker(playMouseDown,playMouseUp)'));
+assert(sceneSource.includes("window.addEventListener('mousedown',down)"));
+assert(sceneSource.includes("window.addEventListener('mouseup',up)"));
+assert(!sceneSource.includes("window.addEventListener('pointerdown',down)"));
 assert(sceneSource.includes('playKeyboard(e.code)'));
 assert(sceneSource.includes('if(e.isComposing||e.repeat||pressed.current.has(e.code))return;'));
 console.log('PASS: click-down/up audio assets, key-specific deterministic timbres, room ambience');

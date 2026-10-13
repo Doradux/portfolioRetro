@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { drawScreen, SW, SH } from '../lib/screenPainter.js';
 import { KEY_LAYOUT } from '../lib/keyboardLayout.js';
 import { preloadSounds, playKeyboard, playMouseDown, playMouseUp } from '../lib/retroAudio.js';
+import { createMouseButtonTracker } from '../lib/mouseButtonTracker.js';
 
 const vertexShader = "varying vec2 vUv; void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}";
 const fragmentShader = "\nuniform sampler2D uMap;\nuniform float uTime;\nuniform float uEffects;\nvarying vec2 vUv;\nfloat rnd(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}\nvoid main(){\n vec2 c=vUv*2.0-1.0;\n vec2 uv=vUv+c*dot(c,c)*.029*uEffects;\n float roll=fract(uTime*.061);\n float seamDist=abs(fract(uv.y-roll+.5)-.5);\n float band=exp(-pow(seamDist*24.,2.));\n uv.x+=(.0014*sin(uv.y*21.5-uTime*1.37)+.0008*sin(uv.y*59.+uTime*.65)+.0030*band)*uEffects;\n float rgb=.00145*uEffects;\n vec3 color=vec3(texture2D(uMap,uv+vec2(rgb,0.)).r,texture2D(uMap,uv).g,texture2D(uMap,uv-vec2(rgb,0.)).b);\n float scan=1.-.065*(.5+.5*cos(uv.y*900.*3.14159));\n color*=mix(1.,scan*(.97+.03*sin(uv.x*1200.*3.14159)),uEffects);\n color+=(rnd(floor(uv*vec2(1200.,900.))+floor(uTime*24.))-.5)*.013*uEffects;\n color+=vec3(.018,.039,.022)*band*uEffects;\n color*=1.-.26*pow(clamp(length(c)/1.42,0.,1.),1.7);\n float refl=pow(max(0.,1.-length((vUv-vec2(.12,.94))*vec2(.75,1.3))),7.);\n color+=vec3(.035,.055,.055)*refl;\n color*=step(.003,uv.x)*step(.003,uv.y)*step(uv.x,.997)*step(uv.y,.997);\n gl_FragColor=vec4(color,1.0);\n #include <tonemapping_fragment>\n #include <colorspace_fragment>\n}\n";
@@ -153,7 +154,11 @@ function MouseAndShadow(){
   const leftButton=useRef();
   const rightButton=useRef();
   const cable=useRef();
-  const pressed=useRef(new Set());
+  const tracker=useRef(null);
+  if(!tracker.current) {
+    tracker.current=createMouseButtonTracker(playMouseDown,playMouseUp);
+  }
+  const pressed=tracker.current.pressed;
   const dummy=useMemo(()=>new THREE.Object3D(),[]);
   const previous=useMemo(()=>new THREE.Vector3(),[]);
   const next=useMemo(()=>new THREE.Vector3(),[]);
@@ -177,25 +182,27 @@ function MouseAndShadow(){
   },[]);
   useEffect(()=>()=>texture.dispose(),[texture]);
   useEffect(()=>{
-    const down=e=>{
-      if((e.button===0||e.button===2)&&!pressed.current.has(e.button)){
-        pressed.current.add(e.button);
-        playMouseDown();
-      }
-    };
-    const up=e=>{
-      if(pressed.current.delete(e.button))playMouseUp();
-    };
-    const reset=()=>pressed.current.clear();
-    window.addEventListener('pointerdown',down);
-    window.addEventListener('pointerup',up);
-    window.addEventListener('pointercancel',reset);
+    const listener=tracker.current;
+    const down=e=>listener.onMouseDown(e);
+    const up=e=>listener.onMouseUp(e);
+    const move=e=>listener.onMouseMove(e);
+    const reset=()=>listener.reset();
+    const lost=e=>{if(!e.relatedTarget)reset();};
+    const visibility=()=>{if(document.hidden)reset();};
+    window.addEventListener('mousedown',down);
+    window.addEventListener('mouseup',up);
+    window.addEventListener('mousemove',move);
+    window.addEventListener('mouseout',lost);
     window.addEventListener('blur',reset);
+    document.addEventListener('visibilitychange',visibility);
     return ()=>{
-      window.removeEventListener('pointerdown',down);
-      window.removeEventListener('pointerup',up);
-      window.removeEventListener('pointercancel',reset);
+      window.removeEventListener('mousedown',down);
+      window.removeEventListener('mouseup',up);
+      window.removeEventListener('mousemove',move);
+      window.removeEventListener('mouseout',lost);
       window.removeEventListener('blur',reset);
+      document.removeEventListener('visibilitychange',visibility);
+      reset();
     };
   },[]);
   useFrame((_,dt)=>{
@@ -209,9 +216,9 @@ function MouseAndShadow(){
     shade.current.position.z=mouse.current.position.z;
     // Each button moves independently. The housing remains stationary.
     leftButton.current.position.y=THREE.MathUtils.lerp(
-      leftButton.current.position.y,.121-(pressed.current.has(0)?.032:0),ease);
+      leftButton.current.position.y,.121-(pressed.has(0)?.032:0),ease);
     rightButton.current.position.y=THREE.MathUtils.lerp(
-      rightButton.current.position.y,.121-(pressed.current.has(2)?.032:0),ease);
+      rightButton.current.position.y,.121-(pressed.has(2)?.032:0),ease);
 
     // The cord is made of lightweight instanced cylinder links, recalculated
     // from the movable mouse front to the fixed connector behind it.

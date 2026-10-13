@@ -93,6 +93,8 @@ export default function App(){
       onClick={toggleMute}
       onPointerDown={e=>e.stopPropagation()}
       onPointerUp={e=>e.stopPropagation()}
+      onMouseDown={e=>e.stopPropagation()}
+      onMouseUp={e=>e.stopPropagation()}
       onKeyDown={e=>e.stopPropagation()}
       onKeyUp={e=>e.stopPropagation()}
       aria-label={muted?'Unmute sounds':'Mute sounds'}
