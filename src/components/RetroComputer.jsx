@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { ContactShadows } from '@react-three/drei';
 import RetroRoom from './RetroRoom.jsx';
+import MobilePhone from './MobilePhone.jsx';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import * as THREE from 'three';
 import { drawScreen, SW, SH } from '../lib/screenPainter.js';
@@ -269,32 +270,6 @@ function MouseAndShadow(){
     </group>
   </group>;
 }
-function VintagePhone(){
-  return <group position={[-2.92,-1.602,0]} rotation={[0,-.12,0]}>
-    {/* 1990s handheld phone laid flat with its underside on the desk. */}
-    <Plastic size={[.68,.126,1.18]} position={[0,0,0]} radius={.075} color="#aaa894"/>
-    <Plastic size={[.59,.028,1.05]} position={[0,.077,-.005]} radius={.045} color="#c3bdab"/>
-    <Plastic size={[.48,.015,.38]} position={[0,.097,-.198]} radius={.016} color="#475f59"/>
-    <Plastic size={[.42,.005,.30]} position={[0,.108,-.198]} radius={.008} color="#8daba0"/>
-    {/* LCD elements and status indicators. */}
-    {[-.17,.0,.17].map((x,i)=><mesh key={'lcd-'+i} position={[x,.112,-.205]}>
-      <boxGeometry args={[.072,.005,.015]}/>
-      <meshBasicMaterial color={i===0?'#364e43':'#526e55'}/>
-    </mesh>)}
-    <Plastic size={[.37,.018,.036]} position={[0,.100,-.478]} radius={.012} color="#666b5d"/>
-    <Plastic size={[.18,.015,.055]} position={[0,.104,.042]} radius={.015} color="#6a7666"/>
-    {Array.from({length:12},(_,i)=>{
-      const row=Math.floor(i/3),col=i%3;
-      return <Plastic key={'dial-'+i} size={[.115,.030,.085]}
-        position={[(col-1)*.166,.109,.18+row*.105]} radius={.02}
-        color={i===9?'#9b927d':'#e6e0cc'}/>;
-    })}
-    <mesh castShadow position={[.19,.08,-.51]} rotation={[Math.PI/2,0,0]}>
-      <cylinderGeometry args={[.021,.025,.26,10]}/>
-      <meshStandardMaterial color="#5a6055" roughness={.8}/>
-    </mesh>
-  </group>;
-}
 function ComputerBase(){
   return <group position={[0,-1.45,-.22]}>
     <Plastic size={[4.40,.43,1.68]} position={[0,0,0]} radius={.09} color="#c3bba0"/>
@@ -406,14 +381,14 @@ function SceneContents(props){
     {/* The computer is rigidly placed in the world, never rotated by the cursor. */}
     <group rotation={[0,-.055,0]}>
       <Monitor {...props}/>
-      <Keyboard/>
-      <MouseAndShadow/>
-      <VintagePhone/>
+      {!props.isMobile && <Keyboard/>}
+      {!props.isMobile && <MouseAndShadow/>}
+      <MobilePhone {...props}/>
     </group>
     <ContactShadows position={[0,-1.655,0]} opacity={.17} scale={8} blur={1.8} far={2.3} frames={1} resolution={256} color="#18110d"/>
   </>;
 }
-function CameraMotion({zoom=0,reducedMotion=false}){
+function CameraMotion({zoom=0,reducedMotion=false,isMobile=false}){
   const {camera,pointer,size}=useThree();
   const target=useMemo(()=>new THREE.Vector3(),[]);
   const smoothLook=useMemo(()=>new THREE.Vector3(0,.24,0),[]);
@@ -421,14 +396,21 @@ function CameraMotion({zoom=0,reducedMotion=false}){
 
   useFrame(({clock},delta)=>{
     const portrait=size.width/size.height<.82;
-    const fov=portrait?53:37;
+    const fov=isMobile?(portrait?60:52):37;
     if(currentFov.current!==fov){
       camera.fov=fov;
       camera.updateProjectionMatrix();
       currentFov.current=fov;
     }
 
-    const z=portrait?11.8-zoom*4:9.45-zoom*3.15;
+    if(isMobile){
+      // Reframe the real desk phone from above; this camera never follows
+      // cursor movements, so tapping the D-pad cannot shake the view.
+      camera.position.set(-3.24,1.30,2.00);
+      camera.lookAt(-3.24,-1.54,.60);
+      return;
+    }
+    const z=9.45-zoom*3.15;
     // Raise the eye and the focal point as we approach the CRT, keeping
     // the complete top frame visible even with the zoom at its maximum.
     camera.position.set(0,1.28+zoom*.37,z);
@@ -450,6 +432,6 @@ function CameraMotion({zoom=0,reducedMotion=false}){
 }
 export default function RetroComputer(props){
   return <Canvas className="retro-canvas" frameloop="always" shadows dpr={[1,1.45]} camera={{position:[0,1.28,9.45],fov:37,near:.1,far:50}} gl={{antialias:true,alpha:false,powerPreference:'high-performance'}}>
-    <CameraMotion zoom={props.zoom} reducedMotion={props.reducedMotion}/><SceneContents {...props}/>
+    <CameraMotion zoom={props.zoom} reducedMotion={props.reducedMotion} isMobile={props.isMobile}/><SceneContents {...props}/>
   </Canvas>;
 }

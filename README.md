@@ -117,3 +117,22 @@ monitor redraws its hit regions and recalculates hover in-place. The cursor
 and visual highlight remain active beneath an unmoved pointer; pagination
 buttons lose hover only at disabled page boundaries or when the pointer
 actually leaves the screen.
+
+## Mobile phone mode
+
+On a mobile-sized or coarse-pointer viewport, the camera looks down onto the
+actual handset on the desk. Its fitted LCD bezel and display are genuine 3D
+objects (with a live, readable 480×576 texture), not an HTML panel over the
+scene. The seven physical keys work by touch:
+
+- **▲ ▼ ◀ ▶** move through sections, projects, categories and contacts
+- **OK** opens the highlighted section or project (or an authorized link)
+- **Back** returns to the project listing or menu without losing selection
+- **Menu** focuses the five main portfolio sections
+
+All 35 projects, including high-level private project summaries but no private
+source code links, remain accessible. The selected section is highlighted when
+Menu is pressed, and project lists scroll in groups of four. Touch interactions
+also have tactile key sound feedback. Desktop view keeps its original interactive
+CRT experience. On mobile, hardware keyboard Arrow keys, Enter, Escape,
+Backspace and M can also operate the phone.

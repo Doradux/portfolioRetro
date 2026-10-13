@@ -31,6 +31,15 @@ export default function App(){
   const [projectPage,setProjectPage]=useState(0);
   const [projectFilter,setProjectFilter]=useState('all');
   const [zoom,setZoom]=useState(0);
+  const [isMobile,setIsMobile]=useState(()=>
+    window.matchMedia('(max-width: 700px), (pointer: coarse) and (max-width: 1024px)').matches
+  );
+  useEffect(()=>{
+    const media=window.matchMedia('(max-width: 700px), (pointer: coarse) and (max-width: 1024px)');
+    const change=()=>setIsMobile(media.matches);
+    media.addEventListener('change',change);
+    return ()=>media.removeEventListener('change',change);
+  },[]);
   const [muted,setMuted]=useState(()=>{
     try { return window.localStorage.getItem('dorados-muted')==='true'; }
     catch { return false; }
@@ -65,6 +74,7 @@ export default function App(){
   },[]);
   useEffect(()=>{
     const onKey=e=>{
+      if(isMobile)return; // the phone's own D-pad controls navigation
       if(e.metaKey||e.ctrlKey||e.altKey||['INPUT','TEXTAREA'].includes(document.activeElement?.tagName))return;
       if(shortcuts[e.key]){e.preventDefault();navigate(shortcuts[e.key]);}
       if(e.key==='Escape')setSelectedProject(null);
@@ -78,10 +88,10 @@ export default function App(){
     };
     window.addEventListener('keydown',onKey);
     return ()=>window.removeEventListener('keydown',onKey);
-  },[navigate,page,selectedProject,turnProjectPage]);
+  },[navigate,page,selectedProject,turnProjectPage,isMobile]);
   return <main className="immersive-portfolio" aria-label="Marcos Dorado 3D portfolio"
     onContextMenu={e=>e.preventDefault()}
-    onWheel={e=>{if(hasWebGL)setZoom(z=>Math.max(0,Math.min(1,z+e.deltaY*.0008)));}}
+    onWheel={e=>{if(hasWebGL&&!isMobile)setZoom(z=>Math.max(0,Math.min(1,z+e.deltaY*.0008)));}}
     onTouchStart={e=>{if(e.touches.length===2){setTouchGap(Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY));}}}
     onTouchMove={e=>{if(e.touches.length===2&&touchGap!==null){
       const next=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
@@ -112,7 +122,7 @@ export default function App(){
     </button>
     {hasWebGL?
       <Suspense fallback={<div className="boot-screen"><span className="boot-cursor">▣</span> BOOTING DORADos...</div>}>
-        <RetroComputer zoom={zoom} page={page} selectedProject={selectedProject}
+        <RetroComputer zoom={zoom} isMobile={isMobile} page={page} selectedProject={selectedProject}
           onNavigate={navigate} onProject={openProject}
           projectPage={projectPage} projectFilter={projectFilter}
           onProjectPage={turnProjectPage} onProjectFilter={changeProjectFilter}
@@ -122,8 +132,9 @@ export default function App(){
       <BrowserFallback page={page} onNavigate={navigate}/>
     }
     <div className="sr-only" role="note">
-      Marcos Dorado interactive portfolio. All navigation is inside the computer screen.
-      Press 1–5 to navigate, left/right arrows to turn project pages, Escape to go back, and use the mouse wheel to zoom.
+      Marcos Dorado interactive portfolio. On mobile, navigation is inside the desk
+      phone: arrows move the selection, OK opens it, Back returns and Menu selects sections.
+      On desktop, navigate the CRT with numbers 1-5 and the mouse.
     </div>
   </main>;
 }
