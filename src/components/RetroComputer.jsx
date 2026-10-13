@@ -1,6 +1,7 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { ContactShadows } from '@react-three/drei';
+import RetroRoom from './RetroRoom.jsx';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import * as THREE from 'three';
 import { drawScreen, SW, SH } from '../lib/screenPainter.js';
@@ -59,7 +60,7 @@ function ComputerBase(){
     </mesh>)}
   </group>;
 }
-function Monitor({page,selectedProject,onNavigate,onProject,effects}){
+function Monitor({page,selectedProject,onNavigate,onProject,effects,onEffectsToggle}){
   const canvas=useMemo(()=>{const c=document.createElement('canvas');c.width=SW;c.height=SH;return c;},[]);
   const texture=useMemo(()=>{const t=new THREE.CanvasTexture(canvas);t.anisotropy=8;t.colorSpace=THREE.SRGBColorSpace;return t;},[canvas]);
   const regions=useRef([]), hovered=useRef(-1);
@@ -109,7 +110,7 @@ function Monitor({page,selectedProject,onNavigate,onProject,effects}){
     />
     <Plastic size={[3.68,.015,.022]} position={[0,-.595,.478]} radius={.003} color="#a5a28c"/>
     <Plastic size={[.52,.055,.018]} position={[-1.44,-.76,.470]} radius={.014} color="#8b8c7a"/>
-    <Plastic size={[.10,.10,.035]} position={[1.63,-.77,.487]} radius={.026} color="#979987" onClick={e=>{e.stopPropagation();onNavigate('home');}}/>
+    <Plastic size={[.10,.10,.035]} position={[1.63,-.77,.487]} radius={.026} color="#979987" onClick={e=>{e.stopPropagation();onEffectsToggle?.();}}/>
     <mesh position={[1.40,-.76,.493]}><sphereGeometry args={[.027,16,16]}/><meshBasicMaterial color="#b9f69d"/></mesh>
     {[0,1,2,3].map(i=><Plastic key={i} size={[.08,.038,.019]} position={[.72+i*.16,-.77,.485]} radius={.012} color="#aaa48e"/>)}
     {Array.from({length:8}).map((_,i)=><mesh key={i} position={[1.87,1.50-i*.10,-.54]} rotation={[0,Math.PI/2,0]}>
@@ -121,49 +122,55 @@ function Monitor({page,selectedProject,onNavigate,onProject,effects}){
   </group>;
 }
 function SceneContents(props){
-  const pc=useRef(), {pointer}=useThree();
-  useFrame((_,dt)=>{
-    if(!pc.current)return;
-    const factor=1-Math.exp(-dt*2.3);
-    pc.current.rotation.y=THREE.MathUtils.lerp(pc.current.rotation.y,-.11+pointer.x*.065,factor);
-    pc.current.rotation.x=THREE.MathUtils.lerp(pc.current.rotation.x,-.02-pointer.y*.019,factor);
-  });
   return <>
-    <color attach="background" args={['#161f20']}/>
-    <fog attach="fog" args={['#161f20',11,22]}/>
-    <ambientLight intensity={2.35}/>
-    <hemisphereLight args={['#f5e6c4','#40574c',2]}/>
-    <directionalLight position={[-3.8,6.5,5]} intensity={3.4} color="#fff0d5" castShadow shadow-mapSize={[1024,1024]} shadow-camera-left={-7} shadow-camera-right={7} shadow-camera-top={7} shadow-camera-bottom={-7}/>
-    <pointLight position={[3.3,1.3,-3]} color="#84e3ba" intensity={30} distance={11}/>
-    <pointLight position={[-4,1.3,2]} color="#ffb47d" intensity={12} distance={10}/>
-    <mesh position={[0,-1.68,0]} receiveShadow rotation={[-Math.PI/2,0,0]}>
-      <planeGeometry args={[200,200]}/><meshStandardMaterial color="#262c29" roughness={.93}/>
-    </mesh>
-    <group ref={pc}>
+    <RetroRoom reducedMotion={props.reducedMotion}/>
+    {/* The computer is rigidly placed in the world, never rotated by the cursor. */}
+    <group rotation={[0,-.055,0]}>
       <Monitor {...props}/>
       <Keyboard/>
       <group position={[2.38,-1.48,2.48]} rotation={[0,-.15,0]}>
-        <mesh castShadow scale={[.30,.16,.48]}><sphereGeometry args={[1,24,16]}/><meshStandardMaterial color="#dfdac5" roughness={.75}/></mesh>
-        <mesh position={[0,.142,-.17]} scale={[.025,.03,.095]}><boxGeometry/><meshStandardMaterial color="#6d7167"/></mesh>
+        <mesh castShadow scale={[.30,.16,.48]}>
+          <sphereGeometry args={[1,24,16]}/>
+          <meshStandardMaterial color="#dfdac5" roughness={.75}/>
+        </mesh>
+        <mesh position={[0,.142,-.17]} scale={[.025,.03,.095]}>
+          <boxGeometry/><meshStandardMaterial color="#6d7167"/>
+        </mesh>
       </group>
-      <group position={[-2.92,-1.54,.0]}>
+      <group position={[-2.92,-1.54,0]}>
         <Plastic size={[.68,.082,1.05]} position={[0,0,0]} radius={.02} color="#b8a98c"/>
         <Plastic size={[.51,.006,.71]} position={[0,.047,-.08]} radius={.002} color="#8ea6a0"/>
       </group>
     </group>
-    <ContactShadows position={[0,-1.66,0]} opacity={.5} scale={11} blur={2.4} far={5} resolution={256} color="#080e0b"/>
+    <ContactShadows position={[0,-1.655,0]} opacity={.46} scale={10} blur={2.6} far={5} resolution={512} color="#18110d"/>
   </>;
 }
-function CameraAim({zoom}){
+function CameraMotion({zoom=0,reducedMotion=false}){
   const camera=useThree(state=>state.camera);
-  useEffect(()=>{
-    camera.lookAt(0,zoom?.72:0,0);
+  const pointer=useThree(state=>state.pointer);
+  const size=useThree(state=>state.size);
+  const focus=useMemo(()=>new THREE.Vector3(),[]);
+  const target=useMemo(()=>new THREE.Vector3(),[]);
+  useFrame(({clock},delta)=>{
+    const portrait=size.width/size.height < .82;
+    camera.fov=portrait?53:37;
     camera.updateProjectionMatrix();
-  },[camera,zoom]);
+    const t=reducedMotion?0:clock.elapsedTime;
+    // Gentle first-person parallax: the room moves relative to the fixed PC.
+    const px=reducedMotion?0:pointer.x*.16;
+    const py=reducedMotion?0:pointer.y*.105;
+    const driftX=reducedMotion?0:Math.sin(t*.21)*.045;
+    const driftY=reducedMotion?0:Math.cos(t*.17)*.030;
+    const baseZ=portrait?(11.8-zoom*4.0):(9.45-zoom*3.15);
+    target.set(px+driftX,1.28+py+driftY,baseZ);
+    camera.position.lerp(target,1-Math.exp(-Math.min(.065,delta)*2.6));
+    focus.set(px*.30,portrait?.38:.20+py*.16,0);
+    camera.lookAt(focus);
+  });
   return null;
 }
 export default function RetroComputer(props){
-  return <Canvas className="retro-canvas" shadows dpr={[1,1.75]} camera={{position:props.zoom?[0,1.17,6.35]:[0,1.17,8.4],fov:37,near:.1,far:50}} gl={{antialias:true,alpha:false,powerPreference:'high-performance'}}>
-    <CameraAim zoom={props.zoom}/><SceneContents {...props}/>
+  return <Canvas className="retro-canvas" shadows dpr={[1,1.75]} camera={{position:[0,1.28,9.45],fov:37,near:.1,far:50}} gl={{antialias:true,alpha:false,powerPreference:'high-performance'}}>
+    <CameraMotion zoom={props.zoom} reducedMotion={props.reducedMotion}/><SceneContents {...props}/>
   </Canvas>;
 }
