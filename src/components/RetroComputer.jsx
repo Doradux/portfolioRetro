@@ -146,6 +146,8 @@ function RoundedOutline({outerWidth,outerHeight,innerWidth,innerHeight,depth=.08
 }
 
 const DESK_SURFACE_Y=-1.665;
+// Angle the mouse nose inward, toward the computer (left), not outward.
+const MOUSE_INWARD_YAW=.24;
 const MOUSE_BOUNDARIES={minX:2.37,maxX:3.03,minZ:2.15,maxZ:2.89};
 
 const CABLE_SEGMENTS=28;
@@ -224,8 +226,11 @@ function MouseAndShadow(){
 
     // The cord is made of lightweight instanced cylinder links, recalculated
     // from the movable mouse front to the fixed connector behind it.
-    curve.v0.set(mouse.current.position.x,-1.487,mouse.current.position.z-.426);
-    curve.v1.set(mouse.current.position.x+.13,-1.56,mouse.current.position.z-1.08);
+    // Follow the rotated nose: keep the cord attached to the socket.
+    curve.v0.set(mouse.current.position.x-Math.sin(MOUSE_INWARD_YAW)*.426,-1.487,
+      mouse.current.position.z-Math.cos(MOUSE_INWARD_YAW)*.426);
+    curve.v1.set(mouse.current.position.x-Math.sin(MOUSE_INWARD_YAW)*.95,-1.56,
+      mouse.current.position.z-1.08);
     curve.v2.set(2.12,-1.615,.02);
     curve.v3.set(1.72,-1.595,-1.40);
     curve.getPoint(0,previous);
@@ -241,7 +246,7 @@ function MouseAndShadow(){
     cable.current.instanceMatrix.needsUpdate=true;
   });
   return <group>
-    <mesh ref={shade} position={[2.70,-1.660,2.50]} rotation={[-Math.PI/2,0,-.15]} renderOrder={1}>
+    <mesh ref={shade} position={[2.70,-1.660,2.50]} rotation={[-Math.PI/2,0,MOUSE_INWARD_YAW]} renderOrder={1}>
       <planeGeometry args={[.95,1.27]}/>
       <meshBasicMaterial map={texture} transparent depthWrite={false} opacity={.38} polygonOffset polygonOffsetFactor={-2}/>
     </mesh>
@@ -249,7 +254,7 @@ function MouseAndShadow(){
       <cylinderGeometry args={[.013,.013,1,7]}/>
       <meshStandardMaterial color="#31332c" roughness={.95}/>
     </instancedMesh>
-    <group ref={mouse} position={[2.70,-1.5675,2.50]} rotation={[0,-.15,0]}>
+    <group ref={mouse} position={[2.70,-1.5675,2.50]} rotation={[0,MOUSE_INWARD_YAW,0]}>
       {/* Squarish 90s mouse shell with gently rounded rectangular corners. */}
       <Plastic size={[.60,.195,.86]} position={[0,0,0]} radius={.072} color="#ddd4b9"/>
       <Plastic size={[.565,.065,.52]} position={[0,.051,.116]} radius={.042} color="#c9bfa6"/>
