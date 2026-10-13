@@ -64,14 +64,14 @@ function titleSmall(ctx,n,title,x,y,w=360){
 }
 function drawHome(ctx,regions){
   mono(ctx,'01 / WELCOME.EXE',316,193,18,C.lime,700);
-  tx(ctx,'HOLA, SOY',311,309,83,C.text,'DM Sans',800);
+  tx(ctx,'HELLO, I\'M',311,309,83,C.text,'DM Sans',800);
   tx(ctx,'MARCOS',311,409,106,C.lime,'DM Sans',800);
   tx(ctx,'DORADO.',310,503,95,C.text,'DM Sans',800);
-  mono(ctx,'FULL STACK DEVELOPER // SEVILLA, ESPAÑA',316,561,20,C.orange,700);
-  tx(ctx,'Construyo productos digitales de principio a fin.',316,613,26,C.text);
-  tx(ctx,'Frontend, backend, sistemas y mucha curiosidad.',316,652,25,C.muted);
-  button(ctx,regions,'VER PROYECTOS',316,706,280,60,'projects');
-  button(ctx,regions,'SOBRE MÍ',615,706,210,60,'about','secondary');
+  mono(ctx,'FULL STACK DEVELOPER // SEVILLE, SPAIN',316,561,20,C.orange,700);
+  tx(ctx,'I build digital products, end to end.',316,613,26,C.text);
+  tx(ctx,'Frontend, backend, systems and curiosity.',316,652,25,C.muted);
+  button(ctx,regions,'MY PROJECTS',316,706,280,60,'projects');
+  button(ctx,regions,'ABOUT ME',615,706,210,60,'about','secondary');
   rr(ctx,903,695,201,72,9,C.panel,'#45635d');
   mono(ctx,'STATUS:',922,723,15,C.muted);
   mono(ctx,'● AVAILABLE',922,752,17,C.lime,700);
@@ -83,25 +83,25 @@ function drawHome(ctx,regions){
   mono(ctx,'[ READY ]',935,431,16,C.orange,700);
 }
 function drawAbout(ctx,regions){
-  mainHeader(ctx,'02 / WHO_AM_I.TXT','Más que código.','Programador por profesión. Creador por curiosidad.');
+  mainHeader(ctx,'02 / WHO_AM_I.TXT','Beyond code.','A developer by trade. A maker by nature.');
   rr(ctx,315,320,807,181,12,C.panel,'#395754');
   ctx.font='500 26px "DM Sans"';ctx.fillStyle=C.text;
-  wrap(ctx,'Soy Marcos, desarrollador de software full stack. Disfruto transformando problemas reales en productos que las personas puedan usar: desde aplicaciones empresariales hasta proyectos multimedia, juegos y herramientas de inteligencia artificial.',342,365,747,36,5);
-  titleSmall(ctx,'>','EXPERIENCIA',318,545,370);
+  wrap(ctx,'I am Marcos, a full stack software developer. I enjoy turning real problems into useful digital products, from business applications to multimedia platforms, games and artificial intelligence tools.',342,365,747,36,5);
+  titleSmall(ctx,'>','EXPERIENCE',318,545,370);
   experiences.forEach((e,i)=>{
     const y=640+i*93;
     mono(ctx,e.period,320,y,15,C.lime);
     tx(ctx,e.role,520,y,23,C.text,'DM Sans',700);
     mono(ctx,e.company.toUpperCase(),520,y+29,15,C.muted);
   });
-  button(ctx,regions,'CONTACTAR',819,787,293,51,'contact','secondary');
+  button(ctx,regions,'GET IN TOUCH',819,787,293,51,'contact','secondary');
 }
 function drawProjects(ctx,regions,selected){
-  mainHeader(ctx,'03 / DIRECTORY.PROJECTS','Proyectos','Una selección de lo que he construido.');
+  mainHeader(ctx,'03 / DIRECTORY.PROJECTS','Projects','A selection of things I have built.');
   if(selected){
     const p=projects.find(x=>x.id===selected);
     if(p){
-      mono(ctx,'← VOLVER AL DIRECTORIO',317,338,18,C.lime,700);
+      mono(ctx,'← BACK TO PROJECTS',317,338,18,C.lime,700);
       regions.push({x:311,y:306,w:360,h:49,action:'projects',id:'back'});
       rr(ctx,315,381,805,345,12,C.panel,'#4a5c55');
       mono(ctx,p.number+' / '+p.category,341,426,17,C.lime);
@@ -109,8 +109,8 @@ function drawProjects(ctx,regions,selected){
       ctx.font='500 25px "DM Sans"';ctx.fillStyle=C.text;
       wrap(ctx,p.detail,341,558,748,35,4);
       mono(ctx,p.stack.join(' · '),343,686,15,C.orange);
-      if(p.link){button(ctx,regions,'VER EN GITHUB',317,750,298,59,'external','primary',p.link);}
-      else mono(ctx,'PROYECTO PRIVADO / CÓDIGO NO PÚBLICO',320,789,18,C.muted);
+      if(p.link){button(ctx,regions,'VIEW ON GITHUB',317,750,298,59,'external','primary',p.link);}
+      else mono(ctx,'PRIVATE PROJECT / SOURCE NOT PUBLIC',320,789,18,C.muted);
       return;
     }
   }
@@ -126,7 +126,7 @@ function drawProjects(ctx,regions,selected){
   });
 }
 function drawSkills(ctx){
-  mainHeader(ctx,'04 / ENVIRONMENT.VARS','Mi toolkit','Tecnologías que utilizo para construir, probar y desplegar.');
+  mainHeader(ctx,'04 / ENVIRONMENT.VARS','My toolkit','Tools I use to build, test and ship software.');
   tech.forEach((category,i)=>{
     const col=i%2,row=Math.floor(i/2),x=314+col*414,y=333+row*248,w=391,h=231;
     rr(ctx,x,y,w,h,11,C.panel,'#395754');
@@ -141,14 +141,14 @@ function drawSkills(ctx){
   });
 }
 function drawContact(ctx,regions){
-  mainHeader(ctx,'05 / CONNECT.EXE','Hablemos.','¿Tienes una idea, un proyecto o simplemente quieres saludar?');
+  mainHeader(ctx,'05 / CONNECT.EXE','Let\'s talk.','An idea, a project, or just want to say hello?');
   rr(ctx,313,332,807,192,12,C.panel,'#49615b');
-  tx(ctx,'¿CONSTRUIMOS ALGO',339,415,45,C.text,'DM Sans',800);
-  tx(ctx,'JUNTOS?',338,470,58,C.lime,'DM Sans',800);
-  button(ctx,regions,'ENVIAR UN EMAIL',315,570,807,68,'external','primary',socials.email);
-  button(ctx,regions,'VISITAR GITHUB',315,663,392,65,'external','secondary',socials.github);
-  button(ctx,regions,'VER LINKEDIN',731,663,390,65,'external','secondary',socials.linkedin);
-  mono(ctx,'MAR COS DORADO / FULL STACK DEVELOPER / SEVILLA',320,787,16,C.muted);
+  tx(ctx,'LET\'S BUILD',339,415,45,C.text,'DM Sans',800);
+  tx(ctx,'SOMETHING.',338,470,58,C.lime,'DM Sans',800);
+  button(ctx,regions,'SEND AN EMAIL',315,570,807,68,'external','primary',socials.email);
+  button(ctx,regions,'VISIT GITHUB',315,663,392,65,'external','secondary',socials.github);
+  button(ctx,regions,'VIEW LINKEDIN',731,663,390,65,'external','secondary',socials.linkedin);
+  mono(ctx,'MARCOS DORADO / FULL STACK DEVELOPER / SEVILLE',320,787,16,C.muted);
 }
 export function drawScreen(canvas,page,selected,hovered){
   const ctx=canvas.getContext('2d');

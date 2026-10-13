@@ -9,16 +9,16 @@ function BrowserFallback({page,onNavigate}){
   return <div className="webgl-fallback">
     <div className="fallback-window">
       <div className="fallback-title">▣ DORADO_OS <span>GRAPHICS DRIVER UNAVAILABLE</span></div>
-      <nav aria-label="Secciones del portfolio">{navItems.map(n=>
+      <nav aria-label="Portfolio sections">{navItems.map(n=>
         <button type="button" onClick={()=>onNavigate(n.id)} aria-current={page===n.id?'page':undefined} key={n.id}>
           {n.key} {n.label}
         </button>)}</nav>
       <div className="fallback-body">
-        {page==='home'&&<><span>WELCOME.EXE</span><h1>Marcos Dorado</h1><p>Desarrollador full stack · Sevilla, España. Construyo productos digitales del frontend al backend.</p></>}
-        {page==='about'&&<><span>WHO_AM_I.TXT</span><h1>Sobre mí</h1><p>Soy desarrollador de software full stack. Me gusta resolver problemas reales y convertir ideas en productos.</p>{experiences.map(e=><p key={e.company}><strong>{e.role} — {e.company}</strong><small>{e.description}</small></p>)}</>}
-        {page==='projects'&&<><span>DIRECTORY.PROJECTS</span><h1>Mis proyectos</h1>{projects.map(p=><p key={p.id}><strong>{p.title}</strong><small>{p.description}</small>{p.link&&<a href={p.link} target="_blank" rel="noreferrer">Ver repositorio ↗</a>}</p>)}</>}
+        {page==='home'&&<><span>WELCOME.EXE</span><h1>Marcos Dorado</h1><p>Full stack developer · Seville, Spain. I build digital products from frontend to backend.</p></>}
+        {page==='about'&&<><span>WHO_AM_I.TXT</span><h1>About me</h1><p>I am a full stack developer. I love solving real problems and turning ideas into products.</p>{experiences.map(e=><p key={e.company}><strong>{e.role} — {e.company}</strong><small>{e.description}</small></p>)}</>}
+        {page==='projects'&&<><span>DIRECTORY.PROJECTS</span><h1>My projects</h1>{projects.map(p=><p key={p.id}><strong>{p.title}</strong><small>{p.description}</small>{p.link&&<a href={p.link} target="_blank" rel="noreferrer">View repository ↗</a>}</p>)}</>}
         {page==='skills'&&<><span>ENVIRONMENT.VARS</span><h1>Stack</h1>{tech.map(t=><p key={t.label}><strong>{t.label}</strong><small>{t.items.join(' · ')}</small></p>)}</>}
-        {page==='contact'&&<><span>CONNECT.EXE</span><h1>Contacto</h1><p>¿Construimos algo juntos?</p><a href={socials.email}>Enviar email ↗</a><p><a href={socials.github} target="_blank" rel="noreferrer">GitHub ↗</a> · <a href={socials.linkedin} target="_blank" rel="noreferrer">LinkedIn ↗</a></p></>}
+        {page==='contact'&&<><span>CONNECT.EXE</span><h1>Contact</h1><p>Shall we build something together?</p><a href={socials.email}>Send an email ↗</a><p><a href={socials.github} target="_blank" rel="noreferrer">GitHub ↗</a> · <a href={socials.linkedin} target="_blank" rel="noreferrer">LinkedIn ↗</a></p></>}
       </div>
     </div>
   </div>;
@@ -52,7 +52,7 @@ export default function App(){
     window.addEventListener('keydown',onKey);
     return ()=>window.removeEventListener('keydown',onKey);
   },[navigate]);
-  return <main className="immersive-portfolio" aria-label="Portfolio 3D de Marcos Dorado"
+  return <main className="immersive-portfolio" aria-label="Marcos Dorado 3D portfolio"
     onWheel={e=>{if(hasWebGL)setZoom(z=>Math.max(0,Math.min(1,z+e.deltaY*.0008)));}}
     onTouchStart={e=>{if(e.touches.length===2){setTouchGap(Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY));}}}
     onTouchMove={e=>{if(e.touches.length===2&&touchGap!==null){
@@ -62,7 +62,7 @@ export default function App(){
     }}}
     onTouchEnd={e=>{if(e.touches.length<2)setTouchGap(null);}}>
     {hasWebGL?
-      <Suspense fallback={<div className="boot-screen"><span className="boot-cursor">▣</span> INICIANDO DORADO_OS...</div>}>
+      <Suspense fallback={<div className="boot-screen"><span className="boot-cursor">▣</span> BOOTING DORADO_OS...</div>}>
         <RetroComputer zoom={zoom} page={page} selectedProject={selectedProject}
           onNavigate={navigate} onProject={openProject}
           effects={effects} reducedMotion={reducedMotion}
@@ -71,8 +71,8 @@ export default function App(){
       <BrowserFallback page={page} onNavigate={navigate}/>
     }
     <div className="sr-only" role="note">
-      Portfolio interactivo de Marcos Dorado. La navegación está integrada en la pantalla del ordenador.
-      También puedes utilizar las teclas 1 a 5 para navegar, Escape para volver, F para los efectos de monitor, y la rueda del ratón para acercarte o alejarte.
+      Marcos Dorado interactive portfolio. All navigation is inside the computer screen.
+      Press 1–5 to navigate, Escape to go back, F to toggle CRT effects, and use the mouse wheel to zoom.
     </div>
   </main>;
 }

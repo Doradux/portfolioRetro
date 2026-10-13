@@ -6,87 +6,87 @@ export const socials = {
 
 export const projects = [
   {
-    id: 'hpr', number: '01', title: 'HPR', category: 'ERP / INDUSTRIA',
-    label: 'SOFTWARE PROFESIONAL', year: '2025 — ACTUALIDAD',
-    description: 'Desarrollo y evolución de una plataforma ERP para procesos de negocio reales: interfaces de gestión, flujos de trabajo, integraciones y automatización.',
-    detail: 'Una aplicación de producción en la que trabajo de forma continuada. Desarrollo nuevas funciones, mejoro experiencias complejas, corrijo incidencias y mantengo integraciones. Los detalles y el código internos se mantienen privados.',
+    id: 'hpr', number: '01', title: 'HPR', category: 'ERP / INDUSTRY',
+    label: 'PROFESSIONAL SOFTWARE', year: '2025 — PRESENT',
+    description: 'Building and evolving an ERP platform for real business operations: management interfaces, workflows, integrations and automation.',
+    detail: 'A production application I work on continuously. I build new features, improve complex workflows, solve issues and maintain integrations. Internal code and business details remain private.',
     stack: ['Laravel', 'PHP', 'Vue', 'React', 'MySQL', 'Redis'],
     link: null, linkText: null, hue: '#b1dd88'
   },
   {
-    id: 'doradotv', number: '02', title: 'DoradoTV', category: 'STREAMING / PRODUCTO',
-    label: 'PROYECTO PERSONAL', year: '2026',
-    description: 'Una plataforma multimedia con salas privadas, roles, reproducción en directo y bajo demanda, y servicios de transmisión.',
-    detail: 'Construí un producto con cuentas, salas, propietarios e invitados, controles de acceso y gestión de fuentes multimedia. Integra servicios externos, reproducción HLS y un relay orientado a la compatibilidad entre navegadores.',
+    id: 'doradotv', number: '02', title: 'DoradoTV', category: 'STREAMING / PRODUCT',
+    label: 'PERSONAL PROJECT', year: '2026',
+    description: 'A multimedia platform with private rooms, roles, live and on-demand playback, and streaming services.',
+    detail: 'I built a product with accounts, rooms, owners and guests, access controls and multimedia source management. It integrates external services, HLS playback and a relay designed for cross-browser compatibility.',
     stack: ['JavaScript', 'Vite', 'Node.js', 'HLS', 'OAuth', 'APIs'],
-    link: 'https://github.com/Doradux/doradoTV', linkText: 'REPOSITORIO', hue: '#e1b5f5'
+    link: 'https://github.com/Doradux/doradoTV', linkText: 'REPOSITORY', hue: '#e1b5f5'
   },
   {
     id: 'albuvo', number: '03', title: 'Albuvo', category: 'FULL STACK / SAAS',
-    label: 'PROYECTO PERSONAL', year: '2026',
-    description: 'Álbumes privados y colaborativos: invitaciones, cuentas, subidas de fotos, permisos y procesamiento asíncrono.',
-    detail: 'Arquitectura separada en SPA, API, worker y scheduler. El sistema incorpora autenticación, invitaciones para colaborar y subida de imágenes con procesamiento en segundo plano.',
+    label: 'PERSONAL PROJECT', year: '2026',
+    description: 'Private collaborative photo albums with invitations, accounts, image uploads, permissions and asynchronous processing.',
+    detail: 'A modular architecture with a SPA, API, worker and scheduler. The system includes authentication, collaborative invitations and background image processing.',
     stack: ['Vue 3', 'TypeScript', 'Laravel', 'PostgreSQL', 'Redis', 'Docker'],
-    link: 'https://github.com/Doradux/Albuvo', linkText: 'REPOSITORIO', hue: '#ffcb8c'
+    link: 'https://github.com/Doradux/Albuvo', linkText: 'REPOSITORY', hue: '#ffcb8c'
   },
   {
-    id: 'draw', number: '04', title: 'DrawTheGame', category: 'REALTIME / MULTIJUGADOR',
-    label: 'PROYECTO PERSONAL', year: '2025 — 2026',
-    description: 'Juego multijugador de dibujo y adivinanzas con salas, chat y trazos sincronizados en tiempo real.',
-    detail: 'Experiencia multijugador con sincronización de canvas, chat en directo, puntuaciones, modalidades de juego y una arquitectura de comunicación de baja latencia.',
+    id: 'draw', number: '04', title: 'DrawTheGame', category: 'REALTIME / MULTIPLAYER',
+    label: 'PERSONAL PROJECT', year: '2025 — 2026',
+    description: 'A multiplayer drawing and guessing game with rooms, chat and real-time synchronized brush strokes.',
+    detail: 'Multiplayer experience featuring synchronized canvases, live chat, scoring, game modes and a low-latency communication architecture.',
     stack: ['React', 'TypeScript', 'NestJS', 'Socket.IO', 'PostgreSQL'],
     link: null, linkText: null, hue: '#83cad7'
   },
   {
-    id: 'scanner', number: '05', title: 'AI Vulnerability Scanner', category: 'SEGURIDAD / IA',
+    id: 'scanner', number: '05', title: 'AI Vulnerability Scanner', category: 'SECURITY / AI',
     label: 'OPEN SOURCE', year: '2026',
-    description: 'Herramienta de análisis de seguridad que orquesta OWASP ZAP y explica hallazgos con ayuda de modelos de IA.',
-    detail: 'Proyecto de experimentación que combina análisis dinámico y estático, detección del stack tecnológico y generación de informes comprensibles a partir de resultados técnicos.',
+    description: 'A security analysis tool that orchestrates OWASP ZAP and uses AI models to explain findings.',
+    detail: 'An experimental project combining dynamic and static analysis, technology stack detection and accessible reports generated from technical findings.',
     stack: ['Python', 'OWASP ZAP', 'Gemini', 'SAST', 'DAST'],
-    link: 'https://github.com/Doradux/Vulnerabilidades-ScanApp-ZAP-addon', linkText: 'REPOSITORIO', hue: '#f7a9ac'
+    link: 'https://github.com/Doradux/Vulnerabilidades-ScanApp-ZAP-addon', linkText: 'REPOSITORY', hue: '#f7a9ac'
   },
   {
-    id: 'cex', number: '06', title: 'Cex', category: 'COMUNICACIÓN / WEB',
-    label: 'PROYECTO ACADÉMICO', year: '2024',
-    description: 'Aplicación web de comunidades y comunicación inspirada en Discord y Teams, con servidores, mensajería y videollamadas.',
-    detail: 'Proyecto final de Desarrollo de Aplicaciones Web: gestión de usuarios, canales y servidores, chat en tiempo real mediante peticiones asíncronas y videollamadas WebRTC.',
+    id: 'cex', number: '06', title: 'Cex', category: 'COMMUNICATION / WEB',
+    label: 'ACADEMIC PROJECT', year: '2024',
+    description: 'A community and communication web app inspired by Discord and Teams, featuring servers, messaging and video calls.',
+    detail: 'My final Web Application Development project: user, channel and server management, asynchronous chat updates and WebRTC video calls.',
     stack: ['PHP', 'JavaScript', 'MySQL', 'AJAX', 'WebRTC'],
-    link: 'https://github.com/Doradux/Cex', linkText: 'REPOSITORIO', hue: '#edca89'
+    link: 'https://github.com/Doradux/Cex', linkText: 'REPOSITORY', hue: '#edca89'
   }
 ];
 
 export const tech = [
   { label: 'FRONTEND', items: ['JavaScript', 'TypeScript', 'Vue 3', 'React', 'Angular', 'HTML / CSS', 'Tailwind'] },
   { label: 'BACKEND', items: ['PHP', 'Laravel', 'Node.js', 'Java', 'Spring Boot', 'REST APIs', 'WebSockets'] },
-  { label: 'DATOS & INFRA', items: ['MySQL', 'PostgreSQL', 'Redis', 'Docker', 'Linux', 'Git', 'Nginx'] },
-  { label: 'CALIDAD & IA', items: ['Cypress', 'Selenium', 'Postman', 'Python', 'OWASP ZAP', 'Gemini / OpenAI'] }
+  { label: 'DATA & INFRA', items: ['MySQL', 'PostgreSQL', 'Redis', 'Docker', 'Linux', 'Git', 'Nginx'] },
+  { label: 'QA & AI', items: ['Cypress', 'Selenium', 'Postman', 'Python', 'OWASP ZAP', 'Gemini / OpenAI'] }
 ];
 
 export const experiences = [
-  { period: '2025 — HOY', role: 'Desarrollo de software / Full Stack', company: 'Hierros Paco Reyes', description: 'Desarrollo y mantenimiento de aplicaciones internas, ERP y herramientas de gestión de procesos.' },
-  { period: 'ETAPA DE PRÁCTICAS', role: 'QA & Testing', company: 'Eviden', description: 'Pruebas funcionales, automatización y validación de aplicaciones con herramientas de testing.' }
+  { period: '2025 — PRESENT', role: 'Full Stack Software Developer', company: 'Hierros Paco Reyes', description: 'Development and maintenance of internal applications, ERP software and business process tools.' },
+  { period: 'INTERNSHIP', role: 'QA & Testing', company: 'Eviden', description: 'Functional testing, automation and application validation using professional QA tools.' }
 ];
 
 export const education = [
-  { year: '2026 —', title: 'Grado en Ingeniería Informática', school: 'UNED · en curso' },
-  { year: '2024 — 2025', title: 'Especialización en IA y Big Data', school: 'Formación profesional' },
-  { year: '2022 — 2024', title: 'Desarrollo de Aplicaciones Web', school: 'CFGS · Técnico Superior' },
+  { year: '2026 —', title: 'BSc Computer Engineering', school: 'UNED · in progress' },
+  { year: '2024 — 2025', title: 'AI & Big Data Specialization', school: 'Vocational specialization' },
+  { year: '2022 — 2024', title: 'Web Application Development', school: 'Higher Vocational Diploma' },
   { year: '2025', title: 'AWS Academy', school: 'Cloud Foundations · Machine Learning Foundations' }
 ];
 
 export const navItems = [
-  { id: 'home', label: 'INICIO', key: '01' },
-  { id: 'about', label: 'SOBRE MÍ', key: '02' },
-  { id: 'projects', label: 'PROYECTOS', key: '03' },
+  { id: 'home', label: 'HOME', key: '01' },
+  { id: 'about', label: 'ABOUT', key: '02' },
+  { id: 'projects', label: 'PROJECTS', key: '03' },
   { id: 'skills', label: 'STACK', key: '04' },
-  { id: 'contact', label: 'CONTACTO', key: '05' }
+  { id: 'contact', label: 'CONTACT', key: '05' }
 ];
 
 export const labProjects = [
-  { title: 'Trade Cycling', type: 'JAVA / MODDING', detail: 'Addon para buscar encantamientos en intercambios de aldeanos.', href: 'https://github.com/Doradux/Trade-Cycling-Enchantment-Search' },
-  { title: 'Spring Kiosko', type: 'JAVA / SPRING BOOT', detail: 'Aplicación de kiosco desarrollada con el framework Spring.', href: 'https://github.com/Doradux/spring-kiosko' },
-  { title: 'Minecraft Server Bot', type: 'PYTHON / DISCORD', detail: 'Bot para consultar el estado de un servidor de Minecraft.', href: 'https://github.com/Doradux/minecraft-server-status-discord-bot' },
-  { title: 'IABD Course', type: 'PYTHON / IA & DATOS', detail: 'Prácticas y ejercicios de inteligencia artificial y Big Data.', href: 'https://github.com/Doradux/IABD-Course' },
-  { title: 'Autochollo', type: 'NODE.JS / AUTOMATIZACIÓN', detail: 'Experimentos de rastreo y automatización de ofertas.', href: null },
-  { title: 'OMWay', type: 'MOBILE / MULTIPLATAFORMA', detail: 'Exploraciones con React Native, servicios y comunicación en tiempo real.', href: null }
+  { title: 'Trade Cycling', type: 'JAVA / MODDING', detail: 'Addon to search for specific enchanted-book villager trades.', href: 'https://github.com/Doradux/Trade-Cycling-Enchantment-Search' },
+  { title: 'Spring Kiosko', type: 'JAVA / SPRING BOOT', detail: 'Kiosk application developed with the Spring framework.', href: 'https://github.com/Doradux/spring-kiosko' },
+  { title: 'Minecraft Server Bot', type: 'PYTHON / DISCORD', detail: 'Bot that reports the status of a Minecraft server.', href: 'https://github.com/Doradux/minecraft-server-status-discord-bot' },
+  { title: 'IABD Course', type: 'PYTHON / IA & DATOS', detail: 'AI and Big Data exercises and experiments.', href: 'https://github.com/Doradux/IABD-Course' },
+  { title: 'Autochollo', type: 'NODE.JS / AUTOMATION', detail: 'Price tracking and deal automation experiments.', href: null },
+  { title: 'OMWay', type: 'MOBILE / CROSS-PLATFORM', detail: 'Experiments with React Native, services and realtime communication.', href: null }
 ];

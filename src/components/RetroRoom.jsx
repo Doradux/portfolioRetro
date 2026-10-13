@@ -73,6 +73,57 @@ function DustMotes({reducedMotion}){
  useFrame(({clock})=>{resources.mat.uniforms.uTime.value=reducedMotion?0:clock.elapsedTime;});
  return <points geometry={resources.geo} material={resources.mat} frustumCulled={false} renderOrder={4}/>;
 }
+function LampRod({start,end,radius=.055,color='#888775'}){
+  const from=new THREE.Vector3(...start), to=new THREE.Vector3(...end);
+  const direction=to.clone().sub(from);
+  const quaternion=new THREE.Quaternion().setFromUnitVectors(
+    new THREE.Vector3(0,1,0),direction.clone().normalize()
+  );
+  return <mesh position={from.clone().add(to).multiplyScalar(.5).toArray()}
+    quaternion={quaternion} castShadow>
+    <cylinderGeometry args={[radius*.85,radius,direction.length(),14]}/>
+    <meshStandardMaterial color={color} metalness={.48} roughness={.44}/>
+  </mesh>;
+}
+function DeskLamp(){
+  return <group position={[3.45,-1.65,-.94]}>
+    {/* Stable round foot seated directly on the desktop */}
+    <mesh position={[0,.085,0]} castShadow receiveShadow>
+      <cylinderGeometry args={[.31,.38,.15,32]}/>
+      <meshStandardMaterial color="#5e675b" roughness={.43} metalness={.38}/>
+    </mesh>
+    <mesh position={[0,.18,0]} castShadow>
+      <cylinderGeometry args={[.10,.13,.08,20]}/>
+      <meshStandardMaterial color="#8a8b76" metalness={.55} roughness={.4}/>
+    </mesh>
+    <LampRod start={[0,.20,0]} end={[-.09,.88,-.07]} radius={.060}/>
+    <mesh castShadow position={[-.09,.88,-.07]}>
+      <sphereGeometry args={[.12,18,12]}/>
+      <meshStandardMaterial color="#6d7367" metalness={.55} roughness={.35}/>
+    </mesh>
+    <LampRod start={[-.09,.88,-.07]} end={[-.62,1.44,.13]} radius={.048}/>
+    <mesh position={[-.62,1.44,.13]} castShadow>
+      <sphereGeometry args={[.088,16,12]}/>
+      <meshStandardMaterial color="#72786b" roughness={.37} metalness={.6}/>
+    </mesh>
+    {/* Bell-shaped metal shade: narrow at the neck, open and wide below. */}
+    <group position={[-.73,1.47,.17]} rotation={[.08,0,-.12]}>
+      <mesh castShadow receiveShadow position={[0,-.26,0]}>
+        <cylinderGeometry args={[.17,.42,.54,40,1,true]}/>
+        <meshStandardMaterial color="#a7a993" metalness={.30} roughness={.57} side={THREE.DoubleSide}/>
+      </mesh>
+      <mesh position={[0,-.53,0]} rotation={[Math.PI/2,0,0]}>
+        <torusGeometry args={[.42,.023,8,40]}/>
+        <meshStandardMaterial color="#788072" roughness={.47} metalness={.5}/>
+      </mesh>
+      <mesh position={[0,-.47,0]}>
+        <sphereGeometry args={[.115,20,14]}/>
+        <meshStandardMaterial color="#f3deb0" emissive="#e6bb76" emissiveIntensity={1.45}/>
+      </mesh>
+      <pointLight position={[0,-.55,0]} intensity={2.25} distance={3.6} color="#ffcc8d"/>
+    </group>
+  </group>;
+}
 function RoomDecor(){
  return <>
     <group position={[3.72,2.64,-5.05]}>
@@ -90,12 +141,7 @@ function RoomDecor(){
       {[0,1,2,3].map(i=><mesh key={i} position={[0,.48-i*.27,.074]}><boxGeometry args={[.95,.014,.005]}/><meshBasicMaterial color="#c3d4b5" transparent opacity={.35}/></mesh>)}
       <mesh position={[0,-.4,.075]}><ringGeometry args={[.16,.17,32]}/><meshBasicMaterial color="#d5d0b1" transparent opacity={.5}/></mesh>
     </group>
-    <group position={[3.35,-1.62,-.99]}>
-      <mesh castShadow position={[0,.09,0]}><cylinderGeometry args={[.3,.34,.12,24]}/><meshStandardMaterial color="#545d51" metalness={.35} roughness={.46}/></mesh>
-      <mesh castShadow position={[-.06,.76,-.05]} rotation={[0,0,.19]}><cylinderGeometry args={[.05,.06,1.5,12]}/><meshStandardMaterial color="#8c8c77" metalness={.45} roughness={.42}/></mesh>
-      <mesh castShadow position={[-.4,1.51,.1]} rotation={[0,0,-.47]}><cylinderGeometry args={[.15,.47,.60,32,1,true]}/><meshStandardMaterial color="#b7b49e" side={THREE.DoubleSide} roughness={.7}/></mesh>
-      <pointLight position={[-.4,1.28,.25]} intensity={2.6} distance={3.5} color="#ffc790"/>
-    </group>
+    <DeskLamp/>
  </>;
 }
 export default function RetroRoom({reducedMotion=false}){
@@ -104,7 +150,7 @@ export default function RetroRoom({reducedMotion=false}){
    <fog attach="fog" args={['#292820',14,29]}/>
    <ambientLight intensity={1.05} color="#cdbfa7"/>
    <hemisphereLight args={['#e6ceab','#36362d',.75]}/>
-   <directionalLight position={[-4.7,5.3,-1.2]} intensity={2.8} color="#ffe4b0" castShadow shadow-mapSize={[2048,2048]} shadow-bias={-.0003} shadow-camera-left={-8} shadow-camera-right={8} shadow-camera-top={8} shadow-camera-bottom={-8}/>
+   <directionalLight position={[-4.7,5.3,-1.2]} intensity={2.8} color="#ffe4b0" castShadow shadow-mapSize={[1024,1024]} shadow-bias={-.0003} shadow-camera-left={-8} shadow-camera-right={8} shadow-camera-top={8} shadow-camera-bottom={-8}/>
    <spotLight position={[-4.6,4.1,-3.9]} color="#ffdfa8" intensity={40} distance={18} angle={.52} penumbra={.83}/>
    <pointLight position={[1.8,1.7,2.3]} color="#abcfab" intensity={5} distance={7}/>
    <pointLight position={[4.2,3.6,-3.8]} color="#ffd7a9" intensity={7} distance={8}/>

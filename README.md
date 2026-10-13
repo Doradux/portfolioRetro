@@ -1,47 +1,60 @@
-# Marcos Dorado — Portfolio CRT 3D
+# Marcos Dorado — Interactive 3D CRT Portfolio
 
-Portfolio personal de Marcos Dorado construido como una habitación retro 3D inmersiva. Toda la navegación funciona exclusivamente dentro de la pantalla de un ordenador CRT.
+A fully immersive retro 3D room. **The computer is the entire interface**: all visible pages, project cards, and navigation live inside its curved CRT screen.
 
-## Ejecutar
+## Run locally
 
 ```bash
 npm install
 npm run dev
 ```
 
-Abrir la URL indicada por Vite (por defecto `http://localhost:5173`).
+Open the URL shown by Vite (typically `http://localhost:5173`).
 
-## Producción
+## Build
 
 ```bash
 npm run build
 npm run preview
 ```
 
-El resultado estático se genera en `dist/`, apto para Vercel, Netlify, Cloudflare Pages o Nginx.
+The static production bundle is generated in `dist/`. Deploy it to a static hosting platform such as Netlify, Cloudflare Pages, Vercel or Nginx.
 
-## Diseño / interacción
+## 3D environment
 
-- Modelado 3D procedural con Three.js y React Three Fiber: carcasa CRT, marco, pedestal, teclado, ratón y escritorio.
-- Habitación en 3D con paredes, mobiliario, ventana con persianas inclinadas, iluminación cálida y haces de luz con shaders translúcidos.
-- Polvo suspendido iluminado por la ventana con partículas GPU animadas.
-- El ordenador permanece inmóvil: se desplaza muy suavemente la posición del observador (POV) en respuesta al ratón.
-- La pantalla es una textura Canvas 2D aplicada sobre un material shader de WebGL con curvatura, ondas de desplazamiento horizontales, scanlines, aberración cromática, viñeteo, ruido y banda de barrido móvil.
-- La interfaz del monitor tiene zonas interactivas detectadas mediante raycasting (clic en menú y proyectos).
-- Toda la interfaz visible está dentro del CRT; atajos de teclado 1–5 para navegar, Escape para volver y F para alternar los efectos CRT.
-- Interfaz HTML alternativa si WebGL no está disponible.
-- Zoom progresivo sobre el ordenador mediante la rueda del ratón, teclas + y -, o gesto de pellizco en pantallas táctiles.\n- Opción de reducir efectos, y respeto a `prefers-reduced-motion`.
-- Fallback si WebGL no está disponible.
+- Procedural desktop PC, CRT monitor, molded rounded bezel, keyboard with fitted numpad, mouse, desk, lamp and bookshelf.
+- Window with angled blinds, light shafts and floating dust particles.
+- The **computer stays fixed**. The camera rotates from a fixed central viewpoint, looking outward within a restrained cone as the pointer moves.
+- Scroll to zoom; pinch to zoom on touch devices.
+- Mouse with a soft, local radial contact shadow.
+- Static contact shadows are cached rather than recomputed every frame. Reduced shadow-map resolution improves smoothness.
+- No artificial frame-rate limit. React Three Fiber renders using the browser's `requestAnimationFrame` loop, normally synchronized to the display refresh rate.
+- Reduced motion is supported via `prefers-reduced-motion`.
 
-## Contenido
+## CRT effects
 
-Los textos del portfolio están en `src/lib/content.js`. Los proyectos privados carecen de enlaces directos; los proyectos públicos enlazan al repositorio de GitHub correspondiente. No se incluyen información empresarial confidencial ni credenciales.
+The screen is painted on a Canvas 2D texture, mapped onto a subtly curved mesh and shaded by GLSL. Effects include barrel distortion, moving analog interference, chromatic aberration, scanlines, vignette and film grain.
 
-## Tecnologías
+The traveling horizontal interference band uses **wrapped periodic UV distance**, so it gradually leaves the upper edge while re-entering at the lower edge, with no hard jump at a phase reset.
 
-React 19, Vite 7, Three.js, @react-three/fiber, @react-three/drei, CSS.
+## Navigation
 
-## Enlaces
+All interactive pages are inside the monitor, including Home, About, Projects, Stack and Contact.
+
+- Click the CRT screen to navigate.
+- Press **1–5** to choose a section.
+- Press **Escape** to close a project.
+- Press **F** to toggle CRT effects.
+- Use **+ / -** or the mouse wheel for camera zoom.
+- When WebGL is unavailable, an accessible English HTML fallback is displayed.
+
+Content and GitHub links are editable in `src/lib/content.js`. Private employer details and source code are intentionally excluded.
+
+## Stack
+
+React 19, Vite 7, Three.js, React Three Fiber, Drei and GLSL shaders.
+
+## Profiles
 
 - GitHub: https://github.com/Doradux
 - LinkedIn: https://www.linkedin.com/in/marcosdorado/

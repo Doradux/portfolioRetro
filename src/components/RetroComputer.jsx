@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { ContactShadows } from '@react-three/drei';
 import RetroRoom from './RetroRoom.jsx';
@@ -7,7 +7,9 @@ import * as THREE from 'three';
 import { drawScreen, SW, SH } from '../lib/screenPainter.js';
 
 const vertexShader = "varying vec2 vUv; void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}";
-const fragmentShader = "\nuniform sampler2D uMap;\nuniform float uTime;\nuniform float uEffects;\nvarying vec2 vUv;\nfloat rnd(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}\nvoid main(){\n vec2 c=vUv*2.0-1.0;\n vec2 uv=vUv+c*dot(c,c)*.029*uEffects;\n float roll=fract(uTime*.061);\n float band=exp(-pow((uv.y-roll)*28.,2.));\n uv.x+=(.0014*sin(uv.y*21.5-uTime*1.37)+.0008*sin(uv.y*59.+uTime*.65)+.0030*band)*uEffects;\n float rgb=.00145*uEffects;\n vec3 color=vec3(texture2D(uMap,uv+vec2(rgb,0.)).r,texture2D(uMap,uv).g,texture2D(uMap,uv-vec2(rgb,0.)).b);\n float scan=1.-.065*(.5+.5*cos(uv.y*900.*3.14159));\n color*=mix(1.,scan*(.97+.03*sin(uv.x*1200.*3.14159)),uEffects);\n color+=(rnd(floor(uv*vec2(1200.,900.))+floor(uTime*24.))-.5)*.013*uEffects;\n color+=vec3(.018,.039,.022)*band*uEffects;\n color*=1.-.26*pow(clamp(length(c)/1.42,0.,1.),1.7);\n float refl=pow(max(0.,1.-length((vUv-vec2(.12,.94))*vec2(.75,1.3))),7.);\n color+=vec3(.035,.055,.055)*refl;\n color*=step(.003,uv.x)*step(.003,uv.y)*step(uv.x,.997)*step(uv.y,.997);\n gl_FragColor=vec4(color,1.0);\n #include <tonemapping_fragment>\n #include <colorspace_fragment>\n}\n";
+const fragmentShader = "\nuniform sampler2D uMap;\nuniform float uTime;\nuniform float uEffects;\nvarying vec2 vUv;\nfloat rnd(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}\nvoid main(){\n vec2 c=vUv*2.0-1.0;\n vec2 uv=vUv+c*dot(c,c)*.029*uEffects;\n float roll=fract(uTime*.061);\n float seamDist=abs(fract(uv.y-roll+.5)-.5);\n float band=exp(-pow(seamDist*24.,2.));\n uv.x+=(.0014*sin(uv.y*21.5-uTime*1.37)+.0008*sin(uv.y*59.+uTime*.65)+.0030*band)*uEffects;\n float rgb=.00145*uEffects;\n vec3 color=vec3(texture2D(uMap,uv+vec2(rgb,0.)).r,texture2D(uMap,uv).g,texture2D(uMap,uv-vec2(rgb,0.)).b);\n float scan=1.-.065*(.5+.5*cos(uv.y*900.*3.14159));\n color*=mix(1.,scan*(.97+.03*sin(uv.x*1200.*3.14159)),uEffects);\n color+=(rnd(floor(uv*vec2(1200.,900.))+floor(uTime*24.))-.5)*.013*uEffects;\n color+=vec3(.018,.039,.022)*band*uEffects;\n color*=1.-.26*pow(clamp(length(c)/1.42,0.,1.),1.7);\n float refl=pow(max(0.,1.-length((vUv-vec2(.12,.94))*vec2(.75,1.3))),7.);\n color+=vec3(.035,.055,.055)*refl;\n color*=step(.003,uv.x)*step(.003,uv.y)*step(uv.x,.997)*step(uv.y,.997);\n gl_FragColor=vec4(color,1.0);\n #include <tonemapping_fragment>\n #include <colorspace_fragment>\n}\n";
+// Periodic distance wraps the rolling interference band across the top/bottom
+// UV seam: it fades out of one edge and enters smoothly at the other.
 const cream = '#cdc5a9';
 const lightCream = '#e2dcc6';
 
@@ -21,20 +23,26 @@ function Plastic({size,position,rotation=[0,0,0],radius=.10,color=cream,children
 function Keyboard(){
   const keys=useRef();
   const dummy=useMemo(()=>new THREE.Object3D(),[]);
-  const count=104;
+  // Six rows of fifteen keys, plus a contained four-column numeric keypad.
+  const count=6*15+5*4;
   useLayoutEffect(()=>{
     let i=0;
     for(let row=0;row<6;row++){
-      for(let col=0;col<16;col++){
-        dummy.position.set(-1.48+col*.196,.212,-.42+row*.18);
-        dummy.scale.set(.95,1,.92);dummy.updateMatrix();
+      for(let col=0;col<15;col++){
+        dummy.position.set(-1.58+col*.194,.204,-.44+row*.176);
+        dummy.scale.set(.94,1,.91);
+        dummy.updateMatrix();
         keys.current.setMatrixAt(i++,dummy.matrix);
       }
     }
-    for(let col=0;col<8;col++){
-      dummy.position.set(1.77+(col%4)*.166,.212,-.41+Math.floor(col/4)*.18);
-      dummy.scale.set(.75,1,.9);dummy.updateMatrix();
-      keys.current.setMatrixAt(i++,dummy.matrix);
+    for(let row=0;row<5;row++){
+      for(let col=0;col<4;col++){
+        // Rightmost edge stays inside keyboard body, including key width.
+        dummy.position.set(1.49+col*.172,.204,-.40+row*.177);
+        dummy.scale.set(.88,1,.91);
+        dummy.updateMatrix();
+        keys.current.setMatrixAt(i++,dummy.matrix);
+      }
     }
     keys.current.instanceMatrix.needsUpdate=true;
   },[dummy]);
@@ -42,12 +50,90 @@ function Keyboard(){
     <Plastic size={[4.17,.22,1.36]} position={[.13,0,.05]} radius={.11} color={lightCream}/>
     <Plastic size={[4.04,.05,1.18]} position={[.12,.122,.03]} radius={.04} color="#b4af98"/>
     <instancedMesh ref={keys} args={[undefined,undefined,count]} castShadow receiveShadow>
-      <boxGeometry args={[.164,.092,.153]}/><meshStandardMaterial color="#eae5d2" roughness={.9}/>
+      <boxGeometry args={[.164,.092,.153]}/>
+      <meshStandardMaterial color="#eae5d2" roughness={.9}/>
     </instancedMesh>
-    <Plastic size={[.93,.091,.16]} position={[-.11,.234,.466]} radius={.03} color="#c1baa5"/>
+    <Plastic size={[.93,.091,.16]} position={[-.23,.235,.473]} radius={.03} color="#c1baa5"/>
   </group>;
 }
 
+function RoundedOutline({outerWidth,outerHeight,innerWidth,innerHeight,depth=.08,outerRadius=.19,innerRadius=.12,color='#d1c7ab',z=.52}){
+  const geo=useMemo(()=>{
+    const shape=new THREE.Shape();
+    const rounded=(path,left,bottom,width,height,r,clockwise=false)=>{
+      if(!clockwise){
+        path.moveTo(left+r,bottom);path.lineTo(left+width-r,bottom);
+        path.quadraticCurveTo(left+width,bottom,left+width,bottom+r);
+        path.lineTo(left+width,bottom+height-r);
+        path.quadraticCurveTo(left+width,bottom+height,left+width-r,bottom+height);
+        path.lineTo(left+r,bottom+height);
+        path.quadraticCurveTo(left,bottom+height,left,bottom+height-r);
+        path.lineTo(left,bottom+r);
+        path.quadraticCurveTo(left,bottom,left+r,bottom);
+      }else{
+        path.moveTo(left+r,bottom);
+        path.quadraticCurveTo(left,bottom,left,bottom+r);
+        path.lineTo(left,bottom+height-r);
+        path.quadraticCurveTo(left,bottom+height,left+r,bottom+height);
+        path.lineTo(left+width-r,bottom+height);
+        path.quadraticCurveTo(left+width,bottom+height,left+width,bottom+height-r);
+        path.lineTo(left+width,bottom+r);
+        path.quadraticCurveTo(left+width,bottom,left+width-r,bottom);
+        path.lineTo(left+r,bottom);
+      }
+    };
+    rounded(shape,-outerWidth/2,-outerHeight/2,outerWidth,outerHeight,outerRadius);
+    const hole=new THREE.Path();
+    rounded(hole,-innerWidth/2,-innerHeight/2,innerWidth,innerHeight,innerRadius,true);
+    shape.holes.push(hole);
+    const g=new THREE.ExtrudeGeometry(shape,{
+      depth,steps:1,curveSegments:12,
+      bevelEnabled:true,bevelThickness:.023,bevelSize:.019,bevelSegments:4
+    });
+    g.computeVertexNormals();
+    return g;
+  },[outerWidth,outerHeight,innerWidth,innerHeight,depth,outerRadius,innerRadius]);
+  useEffect(()=>()=>geo.dispose(),[geo]);
+  return <mesh geometry={geo} position={[0,1.00,z]} castShadow receiveShadow>
+    <meshStandardMaterial color={color} roughness={.68} metalness={.035}/>
+  </mesh>;
+}
+
+function MouseAndShadow(){
+  const texture=useMemo(()=>{
+    const canvas=document.createElement('canvas');canvas.width=128;canvas.height=128;
+    const ctx=canvas.getContext('2d');
+    const grad=ctx.createRadialGradient(64,64,5,64,64,62);
+    grad.addColorStop(0,'rgba(16,11,7,.45)');
+    grad.addColorStop(.45,'rgba(16,11,7,.27)');
+    grad.addColorStop(1,'rgba(16,11,7,0)');
+    ctx.fillStyle=grad;ctx.fillRect(0,0,128,128);
+    return new THREE.CanvasTexture(canvas);
+  },[]);
+  useEffect(()=>()=>texture.dispose(),[texture]);
+  return <group>
+    {/* Place the radial contact shadow on the actual desk top, not behind it. */}
+    <mesh position={[2.38,-1.657,2.48]} rotation={[-Math.PI/2,0,-.15]} renderOrder={1}>
+      <planeGeometry args={[.90,1.25]}/>
+      <meshBasicMaterial map={texture} transparent depthWrite={false} opacity={.7} polygonOffset polygonOffsetFactor={-2}/>
+    </mesh>
+    <group position={[2.38,-1.49,2.48]} rotation={[0,-.15,0]}>
+      <mesh scale={[.30,.16,.48]}>
+        <sphereGeometry args={[1,36,24]}/>
+        <meshStandardMaterial color="#dfdac5" roughness={.76}/>
+      </mesh>
+      {/* Discreet seam separating the two mouse buttons. */}
+      <mesh position={[0,.154,-.16]} rotation={[-.09,0,0]}>
+        <boxGeometry args={[.013,.012,.19]}/>
+        <meshStandardMaterial color="#888a79" roughness={.85}/>
+      </mesh>
+      <mesh position={[0,.158,-.14]} rotation={[-Math.PI/2,0,0]}>
+        <cylinderGeometry args={[.025,.025,.065,14]}/>
+        <meshStandardMaterial color="#6f7369" roughness={.66}/>
+      </mesh>
+    </group>
+  </group>;
+}
 function ComputerBase(){
   return <group position={[0,-1.38,-.22]}>
     <Plastic size={[4.40,.43,1.68]} position={[0,0,0]} radius={.09} color="#c3bba0"/>
@@ -101,8 +187,14 @@ function Monitor({page,selectedProject,onNavigate,onProject,effects,onEffectsTog
     <Plastic size={[3.67,2.91,1.30]} position={[0,.86,-.58]} radius={.30} color="#bab399"/>
     <Plastic size={[4.25,3.47,.56]} position={[0,.79,.12]} radius={.22} color={cream}/>
     <Plastic size={[4.12,3.33,.12]} position={[0,.80,.449]} radius={.17} color={lightCream}/>
-    <Plastic size={[3.79,2.90,.104]} position={[0,1.00,.525]} radius={.15} color="#697265"/>
-    <Plastic size={[3.69,2.79,.033]} position={[0,1.00,.592]} radius={.13} color="#14221e"/>
+    <Plastic size={[3.76,2.85,.08]} position={[0,1.00,.510]} radius={.13} color="#17241f"/>
+    {/* Individually bevelled, continuous rounded CRT surround. */}
+    <RoundedOutline outerWidth={3.94} outerHeight={3.04}
+      innerWidth={3.58} innerHeight={2.68}
+      outerRadius={.23} innerRadius={.16} color="#cbc2a9" z={.505}/>
+    <RoundedOutline outerWidth={3.80} outerHeight={2.90}
+      innerWidth={3.56} innerHeight={2.66}
+      outerRadius={.17} innerRadius={.13} color="#8d9585" z={.538}/>
     <mesh geometry={screenGeo} material={shader} position={[0,1.00,.622]}
       onPointerMove={move}
       onPointerOut={()=>{hovered.current=-1;redraw();document.body.style.cursor='auto';}}
@@ -128,49 +220,50 @@ function SceneContents(props){
     <group rotation={[0,-.055,0]}>
       <Monitor {...props}/>
       <Keyboard/>
-      <group position={[2.38,-1.48,2.48]} rotation={[0,-.15,0]}>
-        <mesh castShadow scale={[.30,.16,.48]}>
-          <sphereGeometry args={[1,24,16]}/>
-          <meshStandardMaterial color="#dfdac5" roughness={.75}/>
-        </mesh>
-        <mesh position={[0,.142,-.17]} scale={[.025,.03,.095]}>
-          <boxGeometry/><meshStandardMaterial color="#6d7167"/>
-        </mesh>
-      </group>
-      <group position={[-2.92,-1.54,0]}>
+      <MouseAndShadow/>\n      <group position={[-2.92,-1.54,0]}>
         <Plastic size={[.68,.082,1.05]} position={[0,0,0]} radius={.02} color="#b8a98c"/>
         <Plastic size={[.51,.006,.71]} position={[0,.047,-.08]} radius={.002} color="#8ea6a0"/>
       </group>
     </group>
-    <ContactShadows position={[0,-1.655,0]} opacity={.46} scale={10} blur={2.6} far={5} resolution={512} color="#18110d"/>
+    <ContactShadows position={[0,-1.655,0]} opacity={.25} scale={9} blur={2.35} far={3} frames={1} resolution={256} color="#18110d"/>
   </>;
 }
 function CameraMotion({zoom=0,reducedMotion=false}){
-  const camera=useThree(state=>state.camera);
-  const pointer=useThree(state=>state.pointer);
-  const size=useThree(state=>state.size);
+  const {camera,pointer,size}=useThree();
   const focus=useMemo(()=>new THREE.Vector3(),[]);
-  const target=useMemo(()=>new THREE.Vector3(),[]);
-  useFrame(({clock},delta)=>{
+  const position=useMemo(()=>new THREE.Vector3(),[]);
+  const aimQuat=useMemo(()=>new THREE.Quaternion(),[]);
+  const helper=useMemo(()=>new THREE.PerspectiveCamera(),[]);
+  const currentFov=useRef(null);
+  useFrame(({clock},dt)=>{
     const portrait=size.width/size.height < .82;
-    camera.fov=portrait?53:37;
-    camera.updateProjectionMatrix();
-    const t=reducedMotion?0:clock.elapsedTime;
-    // Gentle first-person parallax: the room moves relative to the fixed PC.
-    const px=reducedMotion?0:pointer.x*.16;
-    const py=reducedMotion?0:pointer.y*.105;
-    const driftX=reducedMotion?0:Math.sin(t*.21)*.045;
-    const driftY=reducedMotion?0:Math.cos(t*.17)*.030;
-    const baseZ=portrait?(11.8-zoom*4.0):(9.45-zoom*3.15);
-    target.set(px+driftX,1.28+py+driftY,baseZ);
-    camera.position.lerp(target,1-Math.exp(-Math.min(.065,delta)*2.6));
-    focus.set(px*.30,portrait?.38:.20+py*.16,0);
-    camera.lookAt(focus);
+    const fov=portrait?53:37;
+    // Do not recalculate the perspective projection on every frame.
+    if(currentFov.current!==fov){camera.fov=fov;camera.updateProjectionMatrix();currentFov.current=fov;}
+    const delta=Math.min(dt,.07);
+    const ease=1-Math.exp(-delta*7.8);
+    const z=portrait?11.8-zoom*4.0:9.45-zoom*3.15;
+    position.set(0,1.28,z);
+    camera.position.lerp(position,ease);
+
+    // The viewpoint is fixed at the central pivot. The cursor steers a
+    // limited outward-looking cone instead of forcing the camera to
+    // re-center its gaze on the CRT after translation.
+    const time=reducedMotion?0:clock.elapsedTime;
+    const yaw=reducedMotion?0:pointer.x*.105;
+    const pitch=reducedMotion?0:pointer.y*.070;
+    const wanderX=reducedMotion?0:Math.sin(time*.23)*.006;
+    const wanderY=reducedMotion?0:Math.cos(time*.19)*.004;
+    focus.set((yaw+wanderX)*z,.24+(pitch+wanderY)*z,0);
+    helper.position.copy(camera.position);
+    helper.lookAt(focus);
+    aimQuat.copy(helper.quaternion);
+    camera.quaternion.slerp(aimQuat,ease);
   });
   return null;
 }
 export default function RetroComputer(props){
-  return <Canvas className="retro-canvas" shadows dpr={[1,1.75]} camera={{position:[0,1.28,9.45],fov:37,near:.1,far:50}} gl={{antialias:true,alpha:false,powerPreference:'high-performance'}}>
+  return <Canvas className="retro-canvas" frameloop="always" shadows dpr={[1,1.45]} camera={{position:[0,1.28,9.45],fov:37,near:.1,far:50}} gl={{antialias:true,alpha:false,powerPreference:'high-performance'}}>
     <CameraMotion zoom={props.zoom} reducedMotion={props.reducedMotion}/><SceneContents {...props}/>
   </Canvas>;
 }
