@@ -20,42 +20,103 @@ function Plastic({size,position,rotation=[0,0,0],radius=.10,color=cream,children
   </mesh>;
 }
 
+// Physical rows match the modeled keycaps. Browser KeyboardEvent.code keeps
+// the correct key active independently of keyboard language/layout.
+const KEY_ROWS = [
+  ['Escape','F1','F2','F3','F4','F5','F6','F7','F8','F9','F10','F11','F12','PrintScreen','Delete'],
+  ['Backquote','Digit1','Digit2','Digit3','Digit4','Digit5','Digit6','Digit7','Digit8','Digit9','Digit0','Minus','Equal','Backspace','Insert'],
+  ['Tab','KeyQ','KeyW','KeyE','KeyR','KeyT','KeyY','KeyU','KeyI','KeyO','KeyP','BracketLeft','BracketRight','Backslash','Home'],
+  ['CapsLock','KeyA','KeyS','KeyD','KeyF','KeyG','KeyH','KeyJ','KeyK','KeyL','Semicolon','Quote','Enter','End','PageUp'],
+  ['ShiftLeft','KeyZ','KeyX','KeyC','KeyV','KeyB','KeyN','KeyM','Comma','Period','Slash','ShiftRight','ArrowUp','PageDown','ContextMenu'],
+  ['ControlLeft','MetaLeft','AltLeft','IntlBackslash','Fn',null,null,null,null,null,'AltRight','MetaRight','ControlRight','ArrowLeft','ArrowRight']
+];
+const NUMPAD_ROWS=[
+  ['NumLock','NumpadDivide','NumpadMultiply','NumpadSubtract'],
+  ['Numpad7','Numpad8','Numpad9','NumpadAdd'],
+  ['Numpad4','Numpad5','Numpad6','NumpadAdd'],
+  ['Numpad1','Numpad2','Numpad3','NumpadEnter'],
+  ['Numpad0','NumpadDecimal','ArrowDown','NumpadEnter']
+];
+const KEY_LAYOUT = [
+  ...KEY_ROWS.flatMap((row,r)=>row.flatMap((code,c)=>code? [{
+    code, x:-1.58+c*.194, z:-.44+r*.176, scale:[.94,1,.91]
+  }]:[])),
+  ...NUMPAD_ROWS.flatMap((row,r)=>row.map((code,c)=>({
+    code,x:1.49+c*.172,z:-.40+r*.177,scale:[.88,1,.91]
+  })))
+];
 function Keyboard(){
   const keys=useRef();
+  const space=useRef();
   const dummy=useMemo(()=>new THREE.Object3D(),[]);
-  // Bottom-row slots 5–9 belong to the spacebar: never spawn keycaps underneath it.
-  // Six rows of fifteen slots, five reserved for the spacebar, plus the numeric keypad.
-  const count=6*15-5+5*4;
+  const pressed=useRef(new Set());
+  const heights=useRef(new Float32Array(KEY_LAYOUT.length));
+  const spaceHeight=useRef(0);
+  const lastFrame=useRef(0);
+
+  useEffect(()=>{
+    const down=e=>{
+      if(e.isComposing)return;
+      pressed.current.add(e.code);
+    };
+    const up=e=>pressed.current.delete(e.code);
+    const reset=()=>pressed.current.clear();
+    window.addEventListener('keydown',down);
+    window.addEventListener('keyup',up);
+    window.addEventListener('blur',reset);
+    document.addEventListener('visibilitychange',reset);
+    return ()=>{
+      window.removeEventListener('keydown',down);
+      window.removeEventListener('keyup',up);
+      window.removeEventListener('blur',reset);
+      document.removeEventListener('visibilitychange',reset);
+    };
+  },[]);
+
   useLayoutEffect(()=>{
-    let i=0;
-    for(let row=0;row<6;row++){
-      for(let col=0;col<15;col++){
-        if(row===5 && col>=5 && col<=9)continue;
-        dummy.position.set(-1.58+col*.194,.204,-.44+row*.176);
-        dummy.scale.set(.94,1,.91);
-        dummy.updateMatrix();
-        keys.current.setMatrixAt(i++,dummy.matrix);
-      }
-    }
-    for(let row=0;row<5;row++){
-      for(let col=0;col<4;col++){
-        // Rightmost edge stays inside keyboard body, including key width.
-        dummy.position.set(1.49+col*.172,.204,-.40+row*.177);
-        dummy.scale.set(.88,1,.91);
-        dummy.updateMatrix();
-        keys.current.setMatrixAt(i++,dummy.matrix);
-      }
-    }
+    KEY_LAYOUT.forEach((key,i)=>{
+      dummy.position.set(key.x,.204,key.z);
+      dummy.scale.set(...key.scale);
+      dummy.updateMatrix();
+      keys.current.setMatrixAt(i,dummy.matrix);
+    });
     keys.current.instanceMatrix.needsUpdate=true;
   },[dummy]);
+
+  useFrame((_,dt)=>{
+    // Active keys animate with a crisp 45 ms depression and a slightly slower
+    // rebound; the other caps keep their matrices unchanged.
+    let changed=false;
+    const easing=1-Math.exp(-Math.min(dt,.08)*24);
+    const active=pressed.current;
+    KEY_LAYOUT.forEach((key,i)=>{
+      const target=active.has(key.code)?.060:0;
+      const next=THREE.MathUtils.lerp(heights.current[i],target,easing);
+      const settled=Math.abs(next-target)<.0005?target:next;
+      if(Math.abs(settled-heights.current[i])<.00015)return;
+      heights.current[i]=settled;
+      dummy.position.set(key.x,.204-settled,key.z);
+      dummy.scale.set(...key.scale);
+      dummy.updateMatrix();
+      keys.current.setMatrixAt(i,dummy.matrix);
+      changed=true;
+    });
+    if(changed)keys.current.instanceMatrix.needsUpdate=true;
+
+    const target=active.has('Space')?.060:0;
+    const next=THREE.MathUtils.lerp(spaceHeight.current,target,easing);
+    spaceHeight.current=Math.abs(next-target)<.0005?target:next;
+    if(space.current)space.current.position.y=.235-spaceHeight.current;
+  });
+
   return <group position={[-.23,-1.49,2.38]} rotation={[-.10,-.02,0]}>
     <Plastic size={[4.17,.22,1.36]} position={[.13,0,.05]} radius={.11} color={lightCream}/>
     <Plastic size={[4.04,.05,1.18]} position={[.12,.122,.03]} radius={.04} color="#b4af98"/>
-    <instancedMesh ref={keys} args={[undefined,undefined,count]} castShadow receiveShadow>
+    <instancedMesh ref={keys} args={[undefined,undefined,KEY_LAYOUT.length]} castShadow receiveShadow>
       <boxGeometry args={[.164,.092,.153]}/>
       <meshStandardMaterial color="#eae5d2" roughness={.9}/>
     </instancedMesh>
-    <Plastic size={[.93,.091,.16]} position={[-.23,.235,.473]} radius={.03} color="#c1baa5"/>
+    <Plastic ref={space} size={[.93,.091,.16]} position={[-.23,.235,.473]} radius={.03} color="#c1baa5"/>
   </group>;
 }
 
@@ -101,7 +162,13 @@ function RoundedOutline({outerWidth,outerHeight,innerWidth,innerHeight,depth=.08
   </mesh>;
 }
 
+const MOUSE_BOUNDARIES={minX:2.37,maxX:3.03,minZ:2.15,maxZ:2.89};
+
 function MouseAndShadow(){
+  const {pointer}=useThree();
+  const mouse=useRef();
+  const shade=useRef();
+  const click=useRef(-1);
   const texture=useMemo(()=>{
     const canvas=document.createElement('canvas');canvas.width=128;canvas.height=128;
     const ctx=canvas.getContext('2d');
@@ -113,18 +180,47 @@ function MouseAndShadow(){
     return new THREE.CanvasTexture(canvas);
   },[]);
   useEffect(()=>()=>texture.dispose(),[texture]);
+  useEffect(()=>{
+    const down=e=>{if(e.button===0||e.button===2)click.current=e.button;};
+    const up=e=>{if(e.button===click.current)click.current=-1;};
+    const reset=()=>{click.current=-1;};
+    window.addEventListener('pointerdown',down);
+    window.addEventListener('pointerup',up);
+    window.addEventListener('pointercancel',reset);
+    window.addEventListener('blur',reset);
+    return ()=>{
+      window.removeEventListener('pointerdown',down);
+      window.removeEventListener('pointerup',up);
+      window.removeEventListener('pointercancel',reset);
+      window.removeEventListener('blur',reset);
+    };
+  },[]);
+  useFrame((_,dt)=>{
+    if(!mouse.current||!shade.current)return;
+    // Tracking the cursor does not hide, replace or lock the real browser pointer.
+    // Clamping ensures the physical mouse cannot escape the tabletop.
+    const targetX=THREE.MathUtils.clamp(2.70+pointer.x*.34,MOUSE_BOUNDARIES.minX,MOUSE_BOUNDARIES.maxX);
+    const targetZ=THREE.MathUtils.clamp(2.50-pointer.y*.36,MOUSE_BOUNDARIES.minZ,MOUSE_BOUNDARIES.maxZ);
+    const ease=1-Math.exp(-Math.min(dt,.07)*13.5);
+    const destY=-1.49+(click.current===-1?0:-.015);
+    mouse.current.position.x=THREE.MathUtils.lerp(mouse.current.position.x,targetX,ease);
+    mouse.current.position.z=THREE.MathUtils.lerp(mouse.current.position.z,targetZ,ease);
+    mouse.current.position.y=THREE.MathUtils.lerp(mouse.current.position.y,destY,ease);
+    mouse.current.rotation.z=THREE.MathUtils.lerp(mouse.current.rotation.z,-.15+(click.current===0?.035:click.current===2?-.035:0),ease);
+    shade.current.position.x=mouse.current.position.x;
+    shade.current.position.z=mouse.current.position.z;
+  });
   return <group>
-    {/* Place the radial contact shadow on the actual desk top, not behind it. */}
-    <mesh position={[2.38,-1.657,2.48]} rotation={[-Math.PI/2,0,-.15]} renderOrder={1}>
+    {/* Shadow follows the physical mouse without clipping through the desk. */}
+    <mesh ref={shade} position={[2.70,-1.657,2.50]} rotation={[-Math.PI/2,0,-.15]} renderOrder={1}>
       <planeGeometry args={[.90,1.25]}/>
       <meshBasicMaterial map={texture} transparent depthWrite={false} opacity={.7} polygonOffset polygonOffsetFactor={-2}/>
     </mesh>
-    <group position={[2.38,-1.49,2.48]} rotation={[0,-.15,0]}>
-      <mesh scale={[.30,.16,.48]}>
+    <group ref={mouse} position={[2.70,-1.49,2.50]} rotation={[0,-.15,0]}>
+      <mesh scale={[.30,.16,.48]} castShadow>
         <sphereGeometry args={[1,36,24]}/>
         <meshStandardMaterial color="#dfdac5" roughness={.76}/>
       </mesh>
-      {/* Discreet seam separating the two mouse buttons. */}
       <mesh position={[0,.154,-.16]} rotation={[-.09,0,0]}>
         <boxGeometry args={[.013,.012,.19]}/>
         <meshStandardMaterial color="#888a79" roughness={.85}/>

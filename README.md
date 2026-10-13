@@ -22,11 +22,12 @@ The static production bundle is generated in `dist/`. Deploy it to a static host
 
 ## 3D environment
 
-- Procedural desktop PC, CRT monitor, molded rounded bezel, keyboard with fitted numpad, mouse, desk, lamp and bookshelf.
+- Procedural desktop PC, CRT monitor, molded rounded bezel, keyboard with fitted numpad, mouse, desk, corner plant and bookshelf.
 - Window with angled blinds, light shafts and floating dust particles.
 - The **computer stays fixed**. The camera rotates from a fixed central viewpoint, looking outward within a restrained cone as the pointer moves.
 - Scroll to zoom; pinch to zoom on touch devices.
-- Mouse with a soft, local radial contact shadow.
+- Physical mouse tracks the on-screen pointer within a fixed, desk-safe X/Z rectangle; it remains visible while the real OS cursor is never hidden or captured. Left/right clicking subtly depresses and tilts it, and its contact shadow follows.
+- Physical keyboard keys react to the corresponding `KeyboardEvent.code` while held, with animated key travel and a separate responsive spacebar. Multiple simultaneous keys and key releases are supported. Only active key matrices are updated for efficiency.
 - Static contact shadows are cached rather than recomputed every frame. Reduced shadow-map resolution improves smoothness.
 - No artificial frame-rate limit. React Three Fiber renders using the browser's `requestAnimationFrame` loop, normally synchronized to the display refresh rate.
 - Reduced motion is supported via `prefers-reduced-motion`.
@@ -41,7 +42,7 @@ The traveling horizontal interference band uses **wrapped periodic UV distance**
 
 All interactive pages are inside the monitor, including Home, About, Projects, Stack and Contact.
 
-- Click the CRT screen to navigate.
+- Click the CRT screen to navigate. Pointer tracking never disables normal browser clicking or pointer visibility.
 - Press **1–5** to choose a section.
 - Press **Escape** to close a project.
 - Press **F** to toggle CRT effects.
