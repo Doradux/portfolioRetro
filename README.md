@@ -75,3 +75,20 @@ React 19, Vite 7, Three.js, React Three Fiber, Drei and GLSL shaders.
 - Zooming raises the camera and focal point together, preserving the top edge of the CRT
 - The wired, rectangular mouse stays constrained to the desk and depresses the left/right buttons separately
 - Native right-click context menus are prevented inside the immersive scene
+
+
+## Retro audio
+
+The audio samples are drawn from the recordings supplied for this portfolio.
+Mouse clicking plays the **press** transient on pointerdown and the **release**
+transient only when the button is actually released. Holding a button does not
+schedule or replay the release sound. Left and right buttons are tracked
+independently, even outside the 3D mouse mesh.
+
+Keyboard presses use the physical key code as a stable hash seed for subtle
+pitch, cutoff-frequency, stereo and level differences. A always sounds like A,
+while B has its own consistent sound. Holding a key never retriggers it through
+the operating system's key-repeat events. Key, mouse and room audio are decoded
+with Web Audio; room ambience remains quiet and starts after the first real
+user interaction, avoiding blocked autoplay. Unsupported audio simply fails
+silently without stopping the 3D portfolio.
