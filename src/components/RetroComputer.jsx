@@ -380,7 +380,7 @@ function SceneContents(props){
     <RetroRoom reducedMotion={props.reducedMotion}/>
     {/* The computer is rigidly placed in the world, never rotated by the cursor. */}
     <group rotation={[0,-.055,0]}>
-      <Monitor {...props}/>
+      {!props.isMobile && <Monitor {...props}/>}
       {!props.isMobile && <Keyboard/>}
       {!props.isMobile && <MouseAndShadow/>}
       <MobilePhone {...props}/>
@@ -395,8 +395,7 @@ function CameraMotion({zoom=0,reducedMotion=false,isMobile=false}){
   const currentFov=useRef(null);
 
   useFrame(({clock},delta)=>{
-    const portrait=size.width/size.height<.82;
-    const fov=isMobile?(portrait?66:59):37;
+    const fov=isMobile?68:37;
     if(currentFov.current!==fov){
       camera.fov=fov;
       camera.updateProjectionMatrix();
@@ -404,12 +403,12 @@ function CameraMotion({zoom=0,reducedMotion=false,isMobile=false}){
     }
 
     if(isMobile){
-      // Reframe the real desk phone from above; this camera never follows
-      // cursor movements, so tapping the D-pad cannot shake the view.
-      // Closer to the handset and more perpendicular to its desk plane:
-      // less perspective tilt, without letting the device fill the viewport.
-      camera.position.set(-3.24,1.12,1.45);
-      camera.lookAt(-3.24,-1.54,.43);
+      // Almost top-down: the camera's image plane is nearly parallel to
+      // the tabletop and remains stable while using the phone's D-pad.
+      // The short distance makes the phone larger; the FOV retains a margin
+      // around the full body in both portrait and landscape orientations.
+      camera.position.set(-3.24,.94,.66);
+      camera.lookAt(-3.24,-1.54,.45);
       return;
     }
     const z=9.45-zoom*3.15;

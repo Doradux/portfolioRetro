@@ -143,3 +143,12 @@ with portrait/landscape FOV padding that keeps the entire body visible.
 All seven hardware symbols are drawn using Canvas vector paths (solid
 triangles, curved back arrow, horizontal menu lines) rather than emoji-prone
 Unicode arrow glyphs; the controls look consistent on iOS and Android.
+
+### Near-top-down mobile camera
+
+The mobile viewport looks at the desk handset from almost straight above:
+the 3D camera is ~5 degrees off the desktop normal and uses a 68-degree
+vertical field of view to show the entire phone with visible margins.
+The handset is larger than before in portrait, stays fully in frame in
+landscape, and the decorative desktop CRT is hidden only on mobile to
+keep the focus on the interactive phone. Desktop rendering is unchanged.
