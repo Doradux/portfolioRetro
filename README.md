@@ -15,6 +15,7 @@ Open the URL shown by Vite (typically `http://localhost:5173`).
 
 ```bash
 npm run build
+npm test
 npm run preview
 ```
 
@@ -42,14 +43,19 @@ The traveling horizontal interference band uses **wrapped periodic UV distance**
 
 All interactive pages are inside the monitor, including Home, About, Projects, Stack and Contact.
 
+**Full project catalogue:** 35 entries: all 33 GitHub owner repositories except hist (20 public, 13 private), plus professional HPR work and the current CRT portfolio. The list is a static snapshot stored in src/lib/projectCatalog.js; no GitHub credentials or private source code are included in the built application.
+
+Inside Projects, use All / Public / Private / Other to filter and Prev / Next or the physical left/right arrow keys to change pages. Six projects appear per page, with individual detail views. Public repositories link to GitHub; private projects show high-level summaries only.
+
 - Click the CRT screen to navigate. Pointer tracking never disables normal browser clicking or pointer visibility.
 - Press **1–5** to choose a section.
+- Press **← / →** in Projects to change pages. The keyboard's inverted-T arrow cluster reacts to matching physical keys.
 - Press **Escape** to close a project.
 - Press **F** to toggle CRT effects.
 - Use **+ / -** or the mouse wheel for camera zoom.
 - When WebGL is unavailable, an accessible English HTML fallback is displayed.
 
-Content and GitHub links are editable in `src/lib/content.js`. Private employer details and source code are intentionally excluded.
+Content and GitHub links are editable in `src/lib/projectCatalog.js`. Private employer details and source code are intentionally excluded.
 
 ## Stack
 

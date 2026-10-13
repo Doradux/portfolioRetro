@@ -96,34 +96,88 @@ function drawAbout(ctx,regions){
   });
   button(ctx,regions,'GET IN TOUCH',819,787,293,51,'contact','secondary');
 }
-function drawProjects(ctx,regions,selected){
-  mainHeader(ctx,'03 / DIRECTORY.PROJECTS','Projects','A selection of things I have built.');
+export const PROJECTS_PER_PAGE=6;
+export function filterProjects(filter='all'){
+  return projects.filter(p=>filter==='all' || (filter==='other'
+    ? p.visibility==='local'||p.visibility==='professional'
+    : p.visibility===filter));
+}
+function shrinkText(ctx,label,maxWidth,size,minSize=17,font='DM Sans',weight=700){
+  let s=size;
+  while(s>minSize){
+    ctx.font=weight+' '+s+'px "'+font+'"';
+    if(ctx.measureText(label).width<=maxWidth)break;
+    s--;
+  }
+  let result=label;
+  while(ctx.measureText(result).width>maxWidth&&result.length>3)result=result.slice(0,-2)+'…';
+  return {size:s,text:result};
+}
+function drawProjects(ctx,regions,selected,projectPage=0,projectFilter='all'){
+  mainHeader(ctx,'03 / DIRECTORY.PROJECTS','Projects',projects.length+' projects / public + private archives');
   if(selected){
     const p=projects.find(x=>x.id===selected);
-    if(p){
-      mono(ctx,'← BACK TO PROJECTS',317,338,18,C.lime,700);
-      regions.push({x:311,y:306,w:360,h:49,action:'projects',id:'back'});
-      rr(ctx,315,381,805,345,12,C.panel,'#4a5c55');
-      mono(ctx,p.number+' / '+p.category,341,426,17,C.lime);
-      tx(ctx,p.title,337,503,54,C.text,'DM Sans',800);
-      ctx.font='500 25px "DM Sans"';ctx.fillStyle=C.text;
-      wrap(ctx,p.detail,341,558,748,35,4);
-      mono(ctx,p.stack.join(' · '),343,686,15,C.orange);
-      if(p.link){button(ctx,regions,'VIEW ON GITHUB',317,750,298,59,'external','primary',p.link);}
-      else mono(ctx,'PRIVATE PROJECT / SOURCE NOT PUBLIC',320,789,18,C.muted);
-      return;
+    if(!p)return;
+    mono(ctx,'← BACK TO DIRECTORY',317,332,18,C.lime,700);
+    regions.push({x:313,y:306,w:375,h:44,action:'projects',id:'back'});
+    rr(ctx,315,370,805,356,12,C.panel,'#4a5c55');
+    mono(ctx,p.number+' / '+p.category,341,413,17,C.lime);
+    mono(ctx,p.label+'  ·  '+p.year,341,442,14,C.orange);
+    const headline=shrinkText(ctx,p.title,751,50,24);
+    tx(ctx,headline.text,339,505,headline.size,C.text,'DM Sans',800);
+    ctx.font='500 24px "DM Sans"';ctx.fillStyle=C.text;
+    wrap(ctx,p.detail||p.description,342,550,740,33,4);
+    mono(ctx,'TECH / '+p.stack.join('  ·  ').slice(0,95),341,696,15,C.muted);
+    if(p.link){
+      button(ctx,regions,'OPEN GITHUB REPO',317,745,322,62,'external','primary',p.link);
+    } else {
+      rr(ctx,317,746,596,59,8,'#1b3835','#3b514d');
+      mono(ctx,p.visibility==='private'?'PRIVATE REPOSITORY  ·  SOURCE NOT PUBLIC':
+          p.visibility==='professional'?'PROPRIETARY WORK  ·  CODE CONFIDENTIAL':
+          'LOCAL PROJECT  ·  YOU ARE HERE',336,783,16,C.lime);
     }
+    mono(ctx,'REPOSITORY / '+(p.repo||'N/A').slice(0,40),318,833,14,C.muted);
+    return;
   }
-  projects.forEach((p,i)=>{
-    const col=i%2,row=Math.floor(i/2),x=317+col*408,y=321+row*166,w=387,h=150;
+
+  const filters=[
+    ['all','ALL',projects.length],
+    ['public','PUBLIC',filterProjects('public').length],
+    ['private','PRIVATE',filterProjects('private').length],
+    ['other','OTHER',filterProjects('other').length]
+  ];
+  filters.forEach(([value,label,count],i)=>{
+    const x=316+i*163,y=308,w=153,h=34,active=value===projectFilter;
+    rr(ctx,x,y,w,h,6,active?'#bfe89c':'#172f30',active?null:'#385655');
+    mono(ctx,label+' '+count,x+12,y+23,15,active?'#173126':C.muted,active?700:400);
+    regions.push({x,y,w,h,action:'project-filter',id:value});
+  });
+  const visible=filterProjects(projectFilter);
+  const pageCount=Math.max(1,Math.ceil(visible.length/PROJECTS_PER_PAGE));
+  const safePage=Math.max(0,Math.min(pageCount-1,projectPage));
+  visible.slice(safePage*PROJECTS_PER_PAGE,(safePage+1)*PROJECTS_PER_PAGE).forEach((p,i)=>{
+    const col=i%2,row=Math.floor(i/2),x=317+col*408,y=354+row*145,w=387,h=132;
     rr(ctx,x,y,w,h,9,C.panel,'#36514e');
-    ctx.fillStyle=p.hue;ctx.fillRect(x+15,y+16,3,115);
-    mono(ctx,p.number+'  /  '+p.category,x+30,y+43,14,C.lime);
-    tx(ctx,p.title.length>22?p.title.slice(0,23):p.title,x+28,y+90,p.title.length>20?24:31,C.text,'DM Sans',700);
-    mono(ctx,p.stack.slice(0,3).join(' · '),x+30,y+121,13,C.muted);
-    mono(ctx,'↗',x+w-41,y+42,27,C.lime,700);
+    ctx.fillStyle=p.hue;ctx.fillRect(x+15,y+13,3,105);
+    mono(ctx,p.number+' / '+(p.visibility==='public'?'PUBLIC':p.visibility==='private'?'PRIVATE':'EXTRA'),x+29,y+29,13,C.lime,700);
+    const headline=shrinkText(ctx,p.title,316,30,19);
+    tx(ctx,headline.text,x+29,y+76,headline.size,C.text,'DM Sans',700);
+    const stack=p.stack.slice(0,3).join(' · ');
+    const tags=shrinkText(ctx,stack,318,14,11,'Space Mono',400);
+    mono(ctx,tags.text,x+29,y+107,tags.size,C.muted);
+    mono(ctx,'↗',x+w-39,y+31,23,C.lime,700);
     regions.push({x,y,w,h,action:'project',id:p.id});
   });
+
+  const left=316,bottomY=799,arrowH=37;
+  const prevEnabled=safePage>0,nextEnabled=safePage<pageCount-1;
+  rr(ctx,left,bottomY,116,arrowH,6,'#1b3431',prevEnabled?'#638472':'#2c4240');
+  mono(ctx,'← PREV',left+18,bottomY+24,15,prevEnabled?C.lime:'#4f6561',700);
+  if(prevEnabled)regions.push({x:left,y:bottomY,w:116,h:arrowH,action:'project-page',id:-1});
+  rr(ctx,left+132,bottomY,116,arrowH,6,'#1b3431',nextEnabled?'#638472':'#2c4240');
+  mono(ctx,'NEXT →',left+145,bottomY+24,15,nextEnabled?C.lime:'#4f6561',700);
+  if(nextEnabled)regions.push({x:left+132,y:bottomY,w:116,h:arrowH,action:'project-page',id:1});
+  mono(ctx,'PAGE '+(safePage+1)+' / '+pageCount+'    ·    '+visible.length+' PROJECTS',762,bottomY+25,15,C.muted,700);
 }
 function drawSkills(ctx){
   mainHeader(ctx,'04 / ENVIRONMENT.VARS','My toolkit','Tools I use to build, test and ship software.');
@@ -150,7 +204,7 @@ function drawContact(ctx,regions){
   button(ctx,regions,'VIEW LINKEDIN',731,663,390,65,'external','secondary',socials.linkedin);
   mono(ctx,'MARCOS DORADO / FULL STACK DEVELOPER / SEVILLE',320,787,16,C.muted);
 }
-export function drawScreen(canvas,page,selected,hovered){
+export function drawScreen(canvas,page,selected,hovered,projectPage=0,projectFilter="all"){
   const ctx=canvas.getContext('2d');
   const regions=[];
   ctx.clearRect(0,0,SW,SH);
@@ -187,7 +241,7 @@ export function drawScreen(canvas,page,selected,hovered){
   mono(ctx,'● ALL SYSTEMS GO',42,841,13,C.lime,700);
 
   if(page==='about')drawAbout(ctx,regions);
-  else if(page==='projects')drawProjects(ctx,regions,selected);
+  else if(page==='projects')drawProjects(ctx,regions,selected,projectPage,projectFilter);
   else if(page==='skills')drawSkills(ctx);
   else if(page==='contact')drawContact(ctx,regions);
   else drawHome(ctx,regions);

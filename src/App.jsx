@@ -1,6 +1,7 @@
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import RetroComputer from './components/RetroComputer.jsx';
 import { navItems, projects, socials, tech, experiences } from './lib/content.js';
+import { filterProjects, PROJECTS_PER_PAGE } from './lib/screenPainter.js';
 import './styles.css';
 
 const shortcuts = { '1':'home', '2':'about', '3':'projects', '4':'skills', '5':'contact' };
@@ -26,6 +27,8 @@ function BrowserFallback({page,onNavigate}){
 export default function App(){
   const [page,setPage]=useState('home');
   const [selectedProject,setSelectedProject]=useState(null);
+  const [projectPage,setProjectPage]=useState(0);
+  const [projectFilter,setProjectFilter]=useState('all');
   const [zoom,setZoom]=useState(0);
   const [touchGap,setTouchGap]=useState(null);
   const [effects,setEffects]=useState(()=>!window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -39,11 +42,24 @@ export default function App(){
     setPage(next);setSelectedProject(null);
   },[page,selectedProject]);
   const openProject=useCallback(id=>{setPage('projects');setSelectedProject(id);},[]);
+  const turnProjectPage=useCallback(delta=>{
+    const lastPage=Math.max(0,Math.ceil(filterProjects(projectFilter).length/PROJECTS_PER_PAGE)-1);
+    setProjectPage(p=>Math.max(0,Math.min(lastPage,p+delta)));
+  },[projectFilter]);
+  const changeProjectFilter=useCallback(filter=>{
+    setProjectFilter(filter);
+    setProjectPage(0);
+    setSelectedProject(null);
+  },[]);
   useEffect(()=>{
     const onKey=e=>{
       if(e.metaKey||e.ctrlKey||e.altKey||['INPUT','TEXTAREA'].includes(document.activeElement?.tagName))return;
       if(shortcuts[e.key]){e.preventDefault();navigate(shortcuts[e.key]);}
       if(e.key==='Escape')setSelectedProject(null);
+      if(page==='projects'&&!selectedProject && (e.key==='ArrowLeft'||e.key==='ArrowRight')){
+        e.preventDefault();
+        if(!e.repeat)turnProjectPage(e.key==='ArrowRight'?1:-1);
+      }
       if(e.key.toLowerCase()==='f')setEffects(current=>!current);
       if(e.key==='+'||e.key==='=')setZoom(z=>Math.min(1,z+.15));
       if(e.key==='-')setZoom(z=>Math.max(0,z-.15));
@@ -51,7 +67,7 @@ export default function App(){
     };
     window.addEventListener('keydown',onKey);
     return ()=>window.removeEventListener('keydown',onKey);
-  },[navigate]);
+  },[navigate,page,selectedProject,turnProjectPage]);
   return <main className="immersive-portfolio" aria-label="Marcos Dorado 3D portfolio"
     onWheel={e=>{if(hasWebGL)setZoom(z=>Math.max(0,Math.min(1,z+e.deltaY*.0008)));}}
     onTouchStart={e=>{if(e.touches.length===2){setTouchGap(Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY));}}}
@@ -65,6 +81,8 @@ export default function App(){
       <Suspense fallback={<div className="boot-screen"><span className="boot-cursor">▣</span> BOOTING DORADO_OS...</div>}>
         <RetroComputer zoom={zoom} page={page} selectedProject={selectedProject}
           onNavigate={navigate} onProject={openProject}
+          projectPage={projectPage} projectFilter={projectFilter}
+          onProjectPage={turnProjectPage} onProjectFilter={changeProjectFilter}
           effects={effects} reducedMotion={reducedMotion}
           onEffectsToggle={()=>setEffects(v=>!v)}/>
       </Suspense>:
@@ -72,7 +90,7 @@ export default function App(){
     }
     <div className="sr-only" role="note">
       Marcos Dorado interactive portfolio. All navigation is inside the computer screen.
-      Press 1–5 to navigate, Escape to go back, F to toggle CRT effects, and use the mouse wheel to zoom.
+      Press 1–5 to navigate, left/right arrows to turn project pages, Escape to go back, F to toggle CRT effects, and use the mouse wheel to zoom.
     </div>
   </main>;
 }

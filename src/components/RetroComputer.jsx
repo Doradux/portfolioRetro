@@ -5,6 +5,7 @@ import RetroRoom from './RetroRoom.jsx';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import * as THREE from 'three';
 import { drawScreen, SW, SH } from '../lib/screenPainter.js';
+import { KEY_LAYOUT } from '../lib/keyboardLayout.js';
 
 const vertexShader = "varying vec2 vUv; void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}";
 const fragmentShader = "\nuniform sampler2D uMap;\nuniform float uTime;\nuniform float uEffects;\nvarying vec2 vUv;\nfloat rnd(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}\nvoid main(){\n vec2 c=vUv*2.0-1.0;\n vec2 uv=vUv+c*dot(c,c)*.029*uEffects;\n float roll=fract(uTime*.061);\n float seamDist=abs(fract(uv.y-roll+.5)-.5);\n float band=exp(-pow(seamDist*24.,2.));\n uv.x+=(.0014*sin(uv.y*21.5-uTime*1.37)+.0008*sin(uv.y*59.+uTime*.65)+.0030*band)*uEffects;\n float rgb=.00145*uEffects;\n vec3 color=vec3(texture2D(uMap,uv+vec2(rgb,0.)).r,texture2D(uMap,uv).g,texture2D(uMap,uv-vec2(rgb,0.)).b);\n float scan=1.-.065*(.5+.5*cos(uv.y*900.*3.14159));\n color*=mix(1.,scan*(.97+.03*sin(uv.x*1200.*3.14159)),uEffects);\n color+=(rnd(floor(uv*vec2(1200.,900.))+floor(uTime*24.))-.5)*.013*uEffects;\n color+=vec3(.018,.039,.022)*band*uEffects;\n color*=1.-.26*pow(clamp(length(c)/1.42,0.,1.),1.7);\n float refl=pow(max(0.,1.-length((vUv-vec2(.12,.94))*vec2(.75,1.3))),7.);\n color+=vec3(.035,.055,.055)*refl;\n color*=step(.003,uv.x)*step(.003,uv.y)*step(uv.x,.997)*step(uv.y,.997);\n gl_FragColor=vec4(color,1.0);\n #include <tonemapping_fragment>\n #include <colorspace_fragment>\n}\n";
@@ -20,31 +21,6 @@ function Plastic({size,position,rotation=[0,0,0],radius=.10,color=cream,children
   </mesh>;
 }
 
-// Physical rows match the modeled keycaps. Browser KeyboardEvent.code keeps
-// the correct key active independently of keyboard language/layout.
-const KEY_ROWS = [
-  ['Escape','F1','F2','F3','F4','F5','F6','F7','F8','F9','F10','F11','F12','PrintScreen','Delete'],
-  ['Backquote','Digit1','Digit2','Digit3','Digit4','Digit5','Digit6','Digit7','Digit8','Digit9','Digit0','Minus','Equal','Backspace','Insert'],
-  ['Tab','KeyQ','KeyW','KeyE','KeyR','KeyT','KeyY','KeyU','KeyI','KeyO','KeyP','BracketLeft','BracketRight','Backslash','Home'],
-  ['CapsLock','KeyA','KeyS','KeyD','KeyF','KeyG','KeyH','KeyJ','KeyK','KeyL','Semicolon','Quote','Enter','End','PageUp'],
-  ['ShiftLeft','KeyZ','KeyX','KeyC','KeyV','KeyB','KeyN','KeyM','Comma','Period','Slash','ShiftRight','ArrowUp','PageDown','ContextMenu'],
-  ['ControlLeft','MetaLeft','AltLeft','IntlBackslash','Fn',null,null,null,null,null,'AltRight','MetaRight','ControlRight','ArrowLeft','ArrowRight']
-];
-const NUMPAD_ROWS=[
-  ['NumLock','NumpadDivide','NumpadMultiply','NumpadSubtract'],
-  ['Numpad7','Numpad8','Numpad9','NumpadAdd'],
-  ['Numpad4','Numpad5','Numpad6','NumpadAdd'],
-  ['Numpad1','Numpad2','Numpad3','NumpadEnter'],
-  ['Numpad0','NumpadDecimal','ArrowDown','NumpadEnter']
-];
-const KEY_LAYOUT = [
-  ...KEY_ROWS.flatMap((row,r)=>row.flatMap((code,c)=>code? [{
-    code, x:-1.58+c*.194, z:-.44+r*.176, scale:[.94,1,.91]
-  }]:[])),
-  ...NUMPAD_ROWS.flatMap((row,r)=>row.map((code,c)=>({
-    code,x:1.49+c*.172,z:-.40+r*.177,scale:[.88,1,.91]
-  })))
-];
 function Keyboard(){
   const keys=useRef();
   const space=useRef();
@@ -244,7 +220,7 @@ function ComputerBase(){
     </mesh>)}
   </group>;
 }
-function Monitor({page,selectedProject,onNavigate,onProject,effects,onEffectsToggle}){
+function Monitor({page,selectedProject,onNavigate,onProject,projectPage,projectFilter,onProjectPage,onProjectFilter,effects,onEffectsToggle}){
   const canvas=useMemo(()=>{const c=document.createElement('canvas');c.width=SW;c.height=SH;return c;},[]);
   const texture=useMemo(()=>{const t=new THREE.CanvasTexture(canvas);t.anisotropy=8;t.colorSpace=THREE.SRGBColorSpace;return t;},[canvas]);
   const regions=useRef([]), hovered=useRef(-1);
@@ -257,10 +233,10 @@ function Monitor({page,selectedProject,onNavigate,onProject,effects,onEffectsTog
     for(let i=0;i<p.count;i++){const x=p.getX(i)/1.77,y=p.getY(i)/1.325;p.setZ(i,.10*(1-x*x)*(1-y*y));}
     geo.computeVertexNormals();return geo;
   },[]);
-  function redraw(){regions.current=drawScreen(canvas,page,selectedProject,hovered.current);texture.needsUpdate=true;}
+  function redraw(){regions.current=drawScreen(canvas,page,selectedProject,hovered.current,projectPage,projectFilter);texture.needsUpdate=true;}
   useEffect(()=>{
     hovered.current=-1;redraw();document.fonts.ready.then(redraw);
-  },[page,selectedProject,canvas,texture]);
+  },[page,selectedProject,projectPage,projectFilter,canvas,texture]);
   useEffect(()=>()=>{shader.dispose();texture.dispose();screenGeo.dispose();},[shader,texture,screenGeo]);
   useFrame(({clock})=>{shader.uniforms.uTime.value=clock.elapsedTime;shader.uniforms.uEffects.value=effects?1:0;});
   function hit(e){
@@ -276,6 +252,8 @@ function Monitor({page,selectedProject,onNavigate,onProject,effects,onEffectsTog
     e.stopPropagation();const idx=hit(e);if(idx<0)return;
     const r=regions.current[idx];
     if(r.action==='project')onProject(r.id);
+    else if(r.action==='project-page')onProjectPage(r.id);
+    else if(r.action==='project-filter')onProjectFilter(r.id);
     else if(r.action==='external'){
       if(r.id.startsWith('mailto:'))window.location.href=r.id;
       else window.open(r.id,'_blank','noopener,noreferrer');
