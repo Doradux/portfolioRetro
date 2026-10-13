@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
     "check": "eslint src",
-    "test": "node tests/check-portfolio.mjs && node tests/check-mouse-buttons.mjs && node tests/check-mobile-phone.mjs"
+    "test": "node tests/check-portfolio.mjs && node tests/check-mouse-buttons.mjs && node tests/check-mobile-phone.mjs && node tests/check-screen-hit.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.6",

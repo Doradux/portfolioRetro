@@ -152,3 +152,13 @@ vertical field of view to show the entire phone with visible margins.
 The handset is larger than before in portrait, stays fully in frame in
 landscape, and the decorative desktop CRT is hidden only on mobile to
 keep the focus on the interactive phone. Desktop rendering is unchanged.
+
+## CRT hitbox accuracy
+
+The CRT barrel-distortion shader remaps texture UVs before displaying them.
+Raycasting still reports the *undistorted* physical glass UV, which previously
+shifted hitboxes below visibly rendered controls near the bottom of the screen
+(e.g. Projects PREV/NEXT). The hit-test now uses the shader's identical UV
+mapping, including the subtly rolling interference and the on/off effects
+state, for hover and pointer clicks. This keeps the visible and clickable
+areas coincident across pages without enlarging invisible hitboxes.

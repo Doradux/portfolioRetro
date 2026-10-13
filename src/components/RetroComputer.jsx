@@ -302,7 +302,7 @@ function Monitor({page,selectedProject,onNavigate,onProject,projectPage,projectF
     // First reconstruct the current page's interactive regions, then resolve
     // hover using the last real pointer position (not an outdated region index).
     const currentRegions=drawScreen(canvas,page,selectedProject,-1,projectPage,projectFilter);
-    const idx=screenRegionAtUv(currentRegions,pointerUv.current,SW,SH);
+    const idx=screenRegionAtUv(currentRegions,pointerUv.current,SW,SH,effects,shader.uniforms.uTime.value);
     hovered.current=idx;
     if(idx>=0)drawScreen(canvas,page,selectedProject,idx,projectPage,projectFilter);
     regions.current=currentRegions;
@@ -315,20 +315,20 @@ function Monitor({page,selectedProject,onNavigate,onProject,projectPage,projectF
     // Ignore stale async font callbacks from a page that has since changed.
     document.fonts.ready.then(()=>{if(active)redraw();});
     return ()=>{active=false;};
-  },[page,selectedProject,projectPage,projectFilter,canvas,texture]);
+  },[page,selectedProject,projectPage,projectFilter,canvas,texture,effects]);
   useEffect(()=>()=>{shader.dispose();texture.dispose();screenGeo.dispose();document.body.style.cursor='auto';},[shader,texture,screenGeo]);
   useFrame(({clock})=>{shader.uniforms.uTime.value=clock.elapsedTime;shader.uniforms.uEffects.value=effects?1:0;});
   function move(e){
     e.stopPropagation();
     pointerUv.current=e.uv?{x:e.uv.x,y:e.uv.y}:null;
-    const idx=screenRegionAtUv(regions.current,pointerUv.current,SW,SH);
+    const idx=screenRegionAtUv(regions.current,pointerUv.current,SW,SH,effects,shader.uniforms.uTime.value);
     if(idx!==hovered.current)redraw();
   }
   function click(e){
     if(e.button!==0)return;
     e.stopPropagation();
     pointerUv.current=e.uv?{x:e.uv.x,y:e.uv.y}:null;
-    const idx=screenRegionAtUv(regions.current,pointerUv.current,SW,SH);
+    const idx=screenRegionAtUv(regions.current,pointerUv.current,SW,SH,effects,shader.uniforms.uTime.value);
     if(idx<0)return;
     const r=regions.current[idx];
     if(r.action==='project')onProject(r.id);

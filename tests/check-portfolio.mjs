@@ -98,6 +98,6 @@ assert.equal(screenRegionAtUv([prev],uvAt(next),viewW,viewH),-1);
 assert.equal(screenRegionAtUv([next],uvAt(prev),viewW,viewH),-1);
 assert.equal(screenRegionAtUv([next],null,viewW,viewH),-1);
 assert(sceneSource.includes('const pointerUv=useRef(null)'));
-assert(sceneSource.includes('screenRegionAtUv(currentRegions,pointerUv.current,SW,SH)'));
+assert(sceneSource.includes('screenRegionAtUv(currentRegions,pointerUv.current,SW,SH,effects,shader.uniforms.uTime.value)'));
 assert(!sceneSource.includes('hovered.current=-1;redraw()'));
 console.log('PASS: CRT hover stays with the cursor after pagination and disappears on disabled controls');
