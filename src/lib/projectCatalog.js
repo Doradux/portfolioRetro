@@ -24,8 +24,93 @@ export const projects = [
     "hue": "#b1dd88"
   },
   {
+    "id": "remoteDoradoCommander",
+    "title": "Remote Dorado Commander",
+    "repo": "remoteDoradoCommander",
+    "category": "REMOTE SYSTEMS / MCP",
+    "label": "PUBLIC REPOSITORY",
+    "year": "2026",
+    "description": "Self-hosted MCP relay to securely manage multiple computers remotely.",
+    "detail": "A Python-based remote computer platform with OAuth, outbound WebSocket agents, persistent command sessions and multi-device management. It can be deployed using Docker.",
+    "stack": [
+      "Python",
+      "FastAPI",
+      "MCP",
+      "OAuth",
+      "WebSockets",
+      "Docker"
+    ],
+    "link": "https://github.com/Doradux/remoteDoradoCommander",
+    "visibility": "public",
+    "hue": "#9edbbb",
+    "number": "02"
+  },
+  {
+    "id": "GottaRemoteMCP",
+    "title": "GottaRemoteMCP",
+    "repo": "GottaRemoteMCP",
+    "category": "REMOTE TOOLS / AI",
+    "label": "PUBLIC REPOSITORY",
+    "year": "2026",
+    "description": "Remote desktop bridge for AI chats, with credentials and HTTPS tunnels.",
+    "detail": "A TypeScript/Node.js tool that launches computer-control services, provides command and file operations, and creates authenticated access over a tunnel without requiring an AI API key.",
+    "stack": [
+      "TypeScript",
+      "Node.js",
+      "MCP",
+      "Express",
+      "HTTPS"
+    ],
+    "link": "https://github.com/Doradux/GottaRemoteMCP",
+    "visibility": "public",
+    "hue": "#a5d4f0",
+    "number": "03"
+  },
+  {
+    "id": "ECO",
+    "title": "ECO — Sigilo Sonoro",
+    "repo": "ECO",
+    "category": "GAME / MULTIPLAYER",
+    "label": "PUBLIC REPOSITORY",
+    "year": "2026",
+    "description": "Tactical browser FPS where sound reveals an otherwise invisible world.",
+    "detail": "Experimental multiplayer shooter featuring sound-driven visualization, wall occlusion, procedural 3D, weapons, networked rounds and an acoustic debugging laboratory.",
+    "stack": [
+      "JavaScript",
+      "Three.js",
+      "WebGL",
+      "Web Audio",
+      "WebSockets"
+    ],
+    "link": "https://github.com/Doradux/ECO",
+    "visibility": "public",
+    "hue": "#e4b1d7",
+    "number": "04"
+  },
+  {
+    "id": "NSMB",
+    "title": "NSMB Wii — Browser Port",
+    "repo": "NSMB",
+    "category": "WEBASSEMBLY / RESEARCH",
+    "label": "PUBLIC REPOSITORY",
+    "year": "2026",
+    "description": "Work-in-progress research into bringing a Wii game to the web.",
+    "detail": "An unfinished experimental project exploring PowerPC-to-C++ translation, WebAssembly runtime adaptation and browser diagnostics. The original game is not yet playable, and game files are not distributed.",
+    "stack": [
+      "C++",
+      "WebAssembly",
+      "JavaScript",
+      "Node.js",
+      "Python"
+    ],
+    "link": "https://github.com/Doradux/NSMB",
+    "visibility": "public",
+    "hue": "#f4d08e",
+    "number": "05"
+  },
+  {
     "id": "doradoTV",
-    "number": "02",
+    "number": "06",
     "title": "DoradoTV",
     "repo": "doradoTV",
     "category": "STREAMING / PRODUCT",
@@ -45,7 +130,7 @@ export const projects = [
   },
   {
     "id": "Albuvo",
-    "number": "03",
+    "number": "07",
     "title": "Albuvo",
     "repo": "Albuvo",
     "category": "FULL STACK / COLLABORATION",
@@ -66,7 +151,7 @@ export const projects = [
   },
   {
     "id": "DrawTheGame",
-    "number": "04",
+    "number": "08",
     "title": "DrawTheGame",
     "repo": "DrawTheGame",
     "category": "REALTIME / MULTIPLAYER",
@@ -86,7 +171,7 @@ export const projects = [
   },
   {
     "id": "Vulnerabilidades-ScanApp-ZAP-addon",
-    "number": "05",
+    "number": "09",
     "title": "AI Vulnerability Scanner",
     "repo": "Vulnerabilidades-ScanApp-ZAP-addon",
     "category": "SECURITY / AI",
@@ -105,7 +190,7 @@ export const projects = [
   },
   {
     "id": "Cex",
-    "number": "06",
+    "number": "10",
     "title": "Cex",
     "repo": "Cex",
     "category": "COMMUNITY / COMMUNICATION",
@@ -125,7 +210,7 @@ export const projects = [
   },
   {
     "id": "autochollo",
-    "number": "07",
+    "number": "11",
     "title": "Autochollo",
     "repo": "autochollo",
     "category": "AUTOMATION / E-COMMERCE",
@@ -143,7 +228,7 @@ export const projects = [
   },
   {
     "id": "BoMC",
-    "number": "08",
+    "number": "12",
     "title": "BoMC",
     "repo": "BoMC",
     "category": "WEB / EXPERIMENT",
@@ -160,7 +245,7 @@ export const projects = [
   },
   {
     "id": "brosgg",
-    "number": "09",
+    "number": "13",
     "title": "brosgg",
     "repo": "brosgg",
     "category": "FULL STACK / DEVOPS",
@@ -179,7 +264,7 @@ export const projects = [
   },
   {
     "id": "CalculadoraPropinasYConsumo-react-ts",
-    "number": "10",
+    "number": "14",
     "title": "Tip & Consumption Calculator",
     "repo": "CalculadoraPropinasYConsumo-react-ts",
     "category": "FRONTEND / REACT",
@@ -197,7 +282,7 @@ export const projects = [
   },
   {
     "id": "catalogoMunyeca",
-    "number": "11",
+    "number": "15",
     "title": "Catálogo Muñeca",
     "repo": "catalogoMunyeca",
     "category": "WEB / PHP",
@@ -216,7 +301,7 @@ export const projects = [
   },
   {
     "id": "ContadorCalorias-React-ts",
-    "number": "12",
+    "number": "16",
     "title": "Calorie Tracker",
     "repo": "ContadorCalorias-React-ts",
     "category": "FRONTEND / REACT",
@@ -234,7 +319,7 @@ export const projects = [
   },
   {
     "id": "CrudLaravelDAW",
-    "number": "13",
+    "number": "17",
     "title": "Laravel CRUD",
     "repo": "CrudLaravelDAW",
     "category": "BACKEND / ACADEMIC",
@@ -252,7 +337,7 @@ export const projects = [
   },
   {
     "id": "doradux.github.io",
-    "number": "14",
+    "number": "18",
     "title": "Early GitHub Pages",
     "repo": "doradux.github.io",
     "category": "WEB / PORTFOLIO",
@@ -271,7 +356,7 @@ export const projects = [
   },
   {
     "id": "EDPruebaGit",
-    "number": "15",
+    "number": "19",
     "title": "EDPruebaGit",
     "repo": "EDPruebaGit",
     "category": "JAVA / LEARNING",
@@ -289,7 +374,7 @@ export const projects = [
   },
   {
     "id": "FilmCy",
-    "number": "16",
+    "number": "20",
     "title": "FilmCy",
     "repo": "FilmCy",
     "category": "FRONTEND / DESIGN",
@@ -308,7 +393,7 @@ export const projects = [
   },
   {
     "id": "Forge-Course-1.20.1",
-    "number": "17",
+    "number": "21",
     "title": "Forge Course 1.20.1",
     "repo": "Forge-Course-1.20.1",
     "category": "MODDING / JAVA",
@@ -327,7 +412,7 @@ export const projects = [
   },
   {
     "id": "Forge-Course-1.20.X",
-    "number": "18",
+    "number": "22",
     "title": "Forge Course 1.20.X",
     "repo": "Forge-Course-1.20.X",
     "category": "MODDING / JAVA",
@@ -346,7 +431,7 @@ export const projects = [
   },
   {
     "id": "GuitarLa-react-carrito",
-    "number": "19",
+    "number": "23",
     "title": "GuitarLA Shopping Cart",
     "repo": "GuitarLa-react-carrito",
     "category": "FRONTEND / REACT",
@@ -365,7 +450,7 @@ export const projects = [
   },
   {
     "id": "guitarla-react-ts",
-    "number": "20",
+    "number": "24",
     "title": "GuitarLA TypeScript",
     "repo": "guitarla-react-ts",
     "category": "FRONTEND / REACT",
@@ -383,7 +468,7 @@ export const projects = [
   },
   {
     "id": "HackathonUtrera",
-    "number": "21",
+    "number": "25",
     "title": "Hackathon Utrera",
     "repo": "HackathonUtrera",
     "category": "WEB / HACKATHON",
@@ -402,7 +487,7 @@ export const projects = [
   },
   {
     "id": "IABD-Course",
-    "number": "22",
+    "number": "26",
     "title": "AI & Big Data Coursework",
     "repo": "IABD-Course",
     "category": "DATA / AI",
@@ -421,7 +506,7 @@ export const projects = [
   },
   {
     "id": "kbp",
-    "number": "23",
+    "number": "27",
     "title": "KBP",
     "repo": "kbp",
     "category": "OPERATIONS / FULL STACK",
@@ -440,7 +525,7 @@ export const projects = [
   },
   {
     "id": "media-dwld",
-    "number": "24",
+    "number": "28",
     "title": "Media DWLD",
     "repo": "media-dwld",
     "category": "WEB / MEDIA",
@@ -460,7 +545,7 @@ export const projects = [
   },
   {
     "id": "minecraft-server-status-discord-bot",
-    "number": "25",
+    "number": "29",
     "title": "Minecraft Server Status Bot",
     "repo": "minecraft-server-status-discord-bot",
     "category": "AUTOMATION / DISCORD",
@@ -478,7 +563,7 @@ export const projects = [
   },
   {
     "id": "OMWay",
-    "number": "26",
+    "number": "30",
     "title": "OMWay",
     "repo": "OMWay",
     "category": "REMOTE CONTROL / MOBILE",
@@ -497,7 +582,7 @@ export const projects = [
   },
   {
     "id": "portfolioweb",
-    "number": "27",
+    "number": "31",
     "title": "Portfolio Web",
     "repo": "portfolioweb",
     "category": "WEB / ASTRO",
@@ -516,7 +601,7 @@ export const projects = [
   },
   {
     "id": "prediccionBTCsimulacion",
-    "number": "28",
+    "number": "32",
     "title": "Bitcoin Prediction Simulation",
     "repo": "prediccionBTCsimulacion",
     "category": "DATA / MACHINE LEARNING",
@@ -535,7 +620,7 @@ export const projects = [
   },
   {
     "id": "RedisSweaty",
-    "number": "29",
+    "number": "33",
     "title": "Redis Sweaty",
     "repo": "RedisSweaty",
     "category": "BACKEND / DATA",
@@ -553,7 +638,7 @@ export const projects = [
   },
   {
     "id": "ServidorDAW",
-    "number": "30",
+    "number": "34",
     "title": "Servidor DAW",
     "repo": "ServidorDAW",
     "category": "SYSTEMS / LEARNING",
@@ -571,7 +656,7 @@ export const projects = [
   },
   {
     "id": "spring-kiosko",
-    "number": "31",
+    "number": "35",
     "title": "Spring Kiosko",
     "repo": "spring-kiosko",
     "category": "BACKEND / JAVA",
@@ -589,7 +674,7 @@ export const projects = [
   },
   {
     "id": "TALMpuzzle",
-    "number": "32",
+    "number": "36",
     "title": "TALM Puzzle",
     "repo": "TALMpuzzle",
     "category": "GAME / JAVASCRIPT",
@@ -608,7 +693,7 @@ export const projects = [
   },
   {
     "id": "Trade-Cycling-Enchantment-Search",
-    "number": "33",
+    "number": "37",
     "title": "Trade Cycling: Enchantment Search",
     "repo": "Trade-Cycling-Enchantment-Search",
     "category": "MODDING / MINECRAFT",
@@ -627,7 +712,7 @@ export const projects = [
   },
   {
     "id": "UdemyCPP",
-    "number": "34",
+    "number": "38",
     "title": "C++ Course Exercises",
     "repo": "UdemyCPP",
     "category": "CPP / LEARNING",
@@ -644,7 +729,7 @@ export const projects = [
   },
   {
     "id": "current-portfolio",
-    "number": "35",
+    "number": "39",
     "title": "Retro CRT Portfolio",
     "repo": null,
     "category": "3D / CREATIVE WEB",

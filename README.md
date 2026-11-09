@@ -43,7 +43,9 @@ The traveling horizontal interference band uses **wrapped periodic UV distance**
 
 All interactive pages are inside the monitor, including Home, About, Projects, Stack and Contact.
 
-**Full project catalogue:** 35 entries: all 33 GitHub owner repositories except hist (20 public, 13 private), plus professional HPR work and the current CRT portfolio. The list is a static snapshot stored in src/lib/projectCatalog.js; no GitHub credentials or private source code are included in the built application.
+**Full project catalogue:** 39 entries: 37 linked GitHub owner repositories (24 public, 13 private), professional HPR work and the current CRT portfolio. The `hist` repository is intentionally excluded, and `portfolioRetro` is represented by the current portfolio entry. The list is a static snapshot stored in src/lib/projectCatalog.js; no GitHub credentials or private source code are included in the built application.
+
+Recent additions include Remote Dorado Commander, GottaRemoteMCP, ECO and the unfinished NSMB Wii browser-port experiment. The newest additions appear near the top of the project directory.
 
 Inside Projects, use All / Public / Private / Other to filter and Prev / Next or the physical left/right arrow keys to change pages. Six projects appear per page, with individual detail views. Public repositories link to GitHub; private projects show high-level summaries only.
 
@@ -130,7 +132,7 @@ scene. The seven physical keys work by touch:
 - **Back** returns to the project listing or menu without losing selection
 - **Menu** focuses the five main portfolio sections
 
-All 35 projects, including high-level private project summaries but no private
+All 39 projects, including high-level private project summaries but no private
 source code links, remain accessible. The selected section is highlighted when
 Menu is pressed, and project lists scroll in groups of four. Touch interactions
 also have tactile key sound feedback. Desktop view keeps its original interactive

@@ -2,11 +2,20 @@ import assert from 'node:assert/strict';
 import {projects} from '../src/lib/projectCatalog.js';
 import {KEY_LAYOUT} from '../src/lib/keyboardLayout.js';
 
-assert.equal(projects.length,35);
+assert.equal(projects.length,39);
 assert.equal(new Set(projects.map(p=>p.id)).size,projects.length);
-assert.equal(projects.filter(p=>p.repo).length,33);
+assert.equal(new Set(projects.filter(p=>p.repo).map(p=>p.repo)).size,37,'Duplicate GitHub repository');
+for(const repo of ['remoteDoradoCommander','GottaRemoteMCP','ECO','NSMB']){
+  const project=projects.find(p=>p.repo===repo);
+  assert(project,'Missing recent repository: '+repo);
+  assert.equal(project.visibility,'public');
+  assert.equal(project.link,'https://github.com/Doradux/'+repo);
+}
+assert(projects.find(p=>p.repo==='NSMB').detail.includes('not yet playable'));
+assert.deepEqual(projects.slice(1,5).map(p=>p.repo),['remoteDoradoCommander','GottaRemoteMCP','ECO','NSMB']);
+assert.equal(projects.filter(p=>p.repo).length,37);
 assert.equal(projects.filter(p=>p.visibility==='private').length,13);
-assert.equal(projects.filter(p=>p.visibility==='public').length,20);
+assert.equal(projects.filter(p=>p.visibility==='public').length,24);
 assert.equal(projects.filter(p=>['professional','local'].includes(p.visibility)).length,2);
 assert(!projects.some(p=>p.id.toLowerCase()==='hist'||p.repo?.toLowerCase()==='hist'));
 for(const [index,p] of projects.entries()){
@@ -26,7 +35,7 @@ assert(Math.abs(up.x-down.x)<.0001&&up.z<down.z);
 assert(key('Numpad2').x>1.4);
 assert(key('Numpad0').scale[0]>1.5);
 assert.equal(KEY_LAYOUT.filter(k=>k.code==='Space').length,0,'spacebar is a separate mesh');
-console.log('PASS: 35 projects, 33 GitHub repos, no hist, safe private links');
+console.log('PASS: 39 projects, 37 GitHub repos, no hist, safe private links');
 console.log('PASS: left/down/right with up above down, independent numeric keypad');
 
 import {readFileSync} from 'node:fs';
